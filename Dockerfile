@@ -1,6 +1,6 @@
 # Stage 1: Base
 FROM node:20-alpine AS base
-RUN corepack enable pnpm
+RUN apk add --no-cache openssl && corepack enable pnpm
 
 # Stage 2: Dependencies
 FROM base AS deps
@@ -29,6 +29,7 @@ RUN pnpm run build --filter=@agent-analytics/api
 
 # Stage 4: Production
 FROM node:20-alpine AS production
+RUN apk add --no-cache openssl
 WORKDIR /app
 
 ENV NODE_ENV=production
