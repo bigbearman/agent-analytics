@@ -38,8 +38,6 @@ jobs:
 
       - name: Build Dashboard
         run: pnpm run build --filter=@agent-analytics/dashboard
-        env:
-          VITE_API_URL: https://api.example.com
 
       - name: Build Tracker
         run: pnpm run build --filter=@agent-analytics/tracker
