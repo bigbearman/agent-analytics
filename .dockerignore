@@ -1,0 +1,20 @@
+node_modules
+.git
+.gitignore
+dist
+.env
+.env.*
+*.md
+.turbo
+.vscode
+.idea
+
+# Dashboard và Tracker deploy riêng
+apps/dashboard
+apps/tracker
+
+# Test files
+**/*.spec.ts
+**/*.test.ts
+**/test/
+**/coverage/

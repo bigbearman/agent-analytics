@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  sites     Site[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Site {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  domain    String   @db.VarChar(255)
+  apiKey    String   @unique @map("api_key") @db.VarChar(64)
+  plan      String   @default("free") @db.VarChar(20)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events    Event[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([apiKey])
+  @@map("sites")
+}
+
+model Event {
+  id         BigInt   @id @default(autoincrement())
+  siteId     String   @map("site_id")
+  sessionId  String?  @map("session_id") @db.VarChar(64)
+  url        String
+  action     String   @db.VarChar(50)
+  isAgent    Boolean  @default(false) @map("is_agent")
+  agentName  String?  @map("agent_name") @db.VarChar(100)
+  confidence Int      @default(0) @db.SmallInt
+  country    String?  @db.VarChar(2)
+  timestamp  DateTime @default(now())
+  meta       Json?
+  site       Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, isAgent, timestamp(sort: Desc)], name: "idx_events_site_agent")
+  @@index([agentName, timestamp(sort: Desc)], name: "idx_events_agent_name")
+  @@index([siteId, timestamp(sort: Desc)], name: "idx_events_site_timestamp")
+  @@map("events")
+}
+
+model DailyAggregate {
+  id            BigInt   @id @default(autoincrement())
+  siteId        String   @map("site_id")
+  date          DateTime @db.Date
+  totalEvents   Int      @default(0) @map("total_events")
+  agentEvents   Int      @default(0) @map("agent_events")
+  humanEvents   Int      @default(0) @map("human_events")
+  uniqueAgents  Int      @default(0) @map("unique_agents")
+  topAgents     Json     @default("[]") @map("top_agents")
+
+  @@unique([siteId, date])
+  @@index([siteId, date(sort: Desc)])
+  @@map("daily_aggregates")
+}
+
+model MonthlyUsage {
+  id         BigInt   @id @default(autoincrement())
+  siteId     String   @map("site_id")
+  month      DateTime @db.Date
+  eventCount Int      @default(0) @map("event_count")
+
+  @@unique([siteId, month])
+  @@map("monthly_usage")
+}

@@ -1,0 +1,138 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    name: Lint & Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build shared types
+        run: pnpm run build --filter=@agent-analytics/types
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Generate Prisma client
+        run: cd apps/api && npx prisma generate
+
+      - name: Build API
+        run: pnpm run build --filter=@agent-analytics/api
+
+      - name: Build Dashboard
+        run: pnpm run build --filter=@agent-analytics/dashboard
+        env:
+          VITE_API_URL: https://api.example.com
+
+      - name: Build Tracker
+        run: pnpm run build --filter=@agent-analytics/tracker
+
+      - name: Run tests
+        run: pnpm test || true
+
+  deploy-api:
+    name: Deploy API (Railway)
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        run: railway up --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Run Prisma migrations
+        run: railway run -- npx prisma migrate deploy --schema=apps/api/prisma/schema.prisma
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  deploy-dashboard:
+    name: Deploy Dashboard (Vercel)
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build shared types
+        run: pnpm run build --filter=@agent-analytics/types
+
+      - name: Build Dashboard
+        run: pnpm run build --filter=@agent-analytics/dashboard
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy to Vercel
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} apps/dashboard
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+  deploy-tracker:
+    name: Deploy Tracker (Cloudflare R2)
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build Tracker
+        run: pnpm run build --filter=@agent-analytics/tracker
+
+      - name: Upload to Cloudflare R2
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --cache-control "public, max-age=31536000, immutable" --content-type "application/javascript"
+        env:
+          AWS_S3_ENDPOINT: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
+          AWS_S3_BUCKET: ${{ secrets.R2_BUCKET_NAME }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+          SOURCE_DIR: apps/tracker/dist
