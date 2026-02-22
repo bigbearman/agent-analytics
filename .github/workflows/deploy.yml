@@ -60,7 +60,7 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
       - name: Run Prisma migrations
-        run: railway run --service api -- npx prisma migrate deploy --schema=apps/api/prisma/schema.prisma
+        run: railway run --service api -- npx prisma@5 migrate deploy --schema=apps/api/prisma/schema.prisma
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
