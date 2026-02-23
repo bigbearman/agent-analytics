@@ -1,11 +1,21 @@
-import { useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { api } from '../lib/api';
 
 interface AuthResponse {
   data: { accessToken: string };
 }
 
-export function useAuth() {
+interface AuthContextType {
+  isAuthenticated: boolean;
+  token: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name?: string) => Promise<void>;
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() =>
     localStorage.getItem('aa_token'),
   );
@@ -27,11 +37,17 @@ export function useAuth() {
     setToken(null);
   }, []);
 
-  return {
-    isAuthenticated: !!token,
-    token,
-    login,
-    register,
-    logout,
-  };
+  return (
+    <AuthContext.Provider value={{ isAuthenticated: !!token, token, login, register, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
 }
