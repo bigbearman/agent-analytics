@@ -9,7 +9,7 @@ export class IngestController {
 
   /**
    * POST /collect — public endpoint, rate-limited
-   * Luôn trả 202, không leak errors ra ngoài
+   * Always returns 202, never leak errors to the client
    */
   @Post()
   @HttpCode(202)

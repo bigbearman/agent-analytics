@@ -18,14 +18,14 @@ export const AGENT_NAMES = Object.keys(KNOWN_AGENTS) as KnownAgentName[];
 
 /** Confidence score thresholds */
 export const CONFIDENCE = {
-  /** Layer 1: Server UA match — tin cậy nhất */
+  /** Layer 1: Server UA match — most reliable */
   SERVER_UA: 95,
   /** Layer 2: Behavioral signals */
   BEHAVIORAL: 60,
   /** Layer 3: Request pattern */
   PATTERN: 40,
-  /** Bonus mỗi extra layer match */
+  /** Bonus per extra layer match */
   EXTRA_LAYER_BONUS: 5,
-  /** Threshold để mark is_agent = true */
+  /** Threshold to mark is_agent = true */
   AGENT_THRESHOLD: 50,
 } as const;

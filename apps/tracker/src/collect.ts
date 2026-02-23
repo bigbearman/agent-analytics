@@ -3,8 +3,8 @@ import type { AgentEvent, AgentInfo } from '@agent-analytics/types';
 const COLLECT_ENDPOINT = '/collect';
 
 /**
- * Fire-and-forget POST event — không block page load
- * Dùng sendBeacon (fallback: fetch) để gửi ngay cả khi tab đóng
+ * Fire-and-forget POST event — does not block page load
+ * Uses sendBeacon (fallback: fetch) to send even when tab is closing
  */
 export function sendEvent(
   endpoint: string,
@@ -13,7 +13,7 @@ export function sendEvent(
   const url = endpoint + COLLECT_ENDPOINT;
   const body = JSON.stringify(event);
 
-  // Prefer sendBeacon — đảm bảo gửi được khi user close tab
+  // Prefer sendBeacon — ensures delivery when user closes tab
   if (navigator.sendBeacon) {
     const blob = new Blob([body], { type: 'application/json' });
     const sent = navigator.sendBeacon(url, blob);
@@ -27,12 +27,12 @@ export function sendEvent(
     body,
     keepalive: true,
   }).catch(() => {
-    // Silently fail — không block user experience
+    // Silently fail — do not block user experience
   });
 }
 
 /**
- * Tạo event payload
+ * Create event payload
  */
 export function createEvent(
   siteId: string,

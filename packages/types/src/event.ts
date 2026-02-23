@@ -6,7 +6,7 @@ export interface AgentInfo {
   confidence: number;
 }
 
-/** Payload gửi từ tracker → POST /collect */
+/** Payload sent from tracker → POST /collect */
 export interface AgentEvent {
   siteId: string;
   url: string;
@@ -16,7 +16,7 @@ export interface AgentEvent {
   meta?: Record<string, unknown>;
 }
 
-/** Event đã enrich bởi server trước khi lưu DB */
+/** Event enriched by server before storing to DB */
 export interface EnrichedEvent extends AgentEvent {
   sessionId: string;
   country: string;

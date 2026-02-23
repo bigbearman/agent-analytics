@@ -55,14 +55,14 @@ export class EventProcessor extends WorkerHost {
       return;
     }
 
-    // 3. Deduplicate (Redis SET với TTL 1s)
+    // 3. Deduplicate (Redis SET with TTL 1s)
     const dedupeKey = `dedup:${site.id}:${data.url}:${data.timestamp}`;
     const isNew = await this.redis.set(dedupeKey, '1', 'EX', 1, 'NX');
     if (!isNew) {
       return;
     }
 
-    // 4. Insert event vào PostgreSQL
+    // 4. Insert event into PostgreSQL
     await this.prisma.event.create({
       data: {
         siteId: site.id,
@@ -79,7 +79,7 @@ export class EventProcessor extends WorkerHost {
     // 5. Increment monthly usage
     await this.incrementMonthlyUsage(site.id);
 
-    // 6. Invalidate analytics cache cho site này
+    // 6. Invalidate analytics cache for this site
     await this.invalidateCache(site.id);
 
     this.logger.debug(`Event processed for site ${site.id}`);

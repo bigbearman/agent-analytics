@@ -15,7 +15,7 @@ const RANGE_TO_INTERVAL: Record<AnalyticsRange, string> = {
   '30d': '30 days',
 };
 
-const CACHE_TTL = 300; // 5 phút
+const CACHE_TTL = 300; // 5 minutes
 
 @Injectable()
 export class AnalyticsService {

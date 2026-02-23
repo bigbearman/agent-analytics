@@ -9,11 +9,11 @@ dist
 .vscode
 .idea
 
-# Dashboard và Tracker deploy riêng
+# Dashboard and Tracker are deployed separately
 apps/dashboard
 apps/tracker
 
-# Test files
+# Test files (excluded from Docker build)
 **/*.spec.ts
 **/*.test.ts
 **/test/

@@ -1,26 +1,26 @@
 # CLAUDE.md — AI Assistant Context
 
-> File này giúp AI assistant (Claude, Cursor, Copilot...) hiểu nhanh project mà không cần giải thích lại từ đầu.
-> Đặt file này ở root của project. Cập nhật mỗi khi có quyết định kiến trúc quan trọng.
+> This file helps AI assistants (Claude, Cursor, Copilot...) quickly understand the project without needing re-explanation.
+> Place this file at the project root. Update whenever important architectural decisions are made.
 
 ---
 
 ## Project: Agent Access Analytics
 
-Analytics platform cho AI agent traffic. Khách hàng nhúng một JS snippet vào website để track và phân tích AI agent behavior — thứ Google Analytics không làm được.
+Analytics platform for AI agent traffic. Customers embed a JS snippet into their website to track and analyze AI agent behavior — something Google Analytics can't do.
 
 ---
 
 ## Tech Stack & Versions
 
 ```
-NestJS        v10+     Fastify adapter (KHÔNG dùng Express)
+NestJS        v10+     Fastify adapter (NOT Express)
 BullMQ        v5+      Queue processing
 PostgreSQL    v16+     Partitioned tables
 Redis         v7+      Cache + Queue broker
 ReactJS       v18+     Dashboard
-ViteJS        v5+      Build tool cho dashboard
-TypeScript    v5+      Toàn bộ codebase
+ViteJS        v5+      Build tool for dashboard
+TypeScript    v5+      Entire codebase
 Turborepo     v2+      Monorepo manager
 Prisma        v5+      ORM (type-safe)
 ```
@@ -41,45 +41,45 @@ packages/types/    Shared TypeScript types (@agent-analytics/types)
 ## Coding Conventions
 
 ### General
-- **Ngôn ngữ code:** TypeScript strict mode, không dùng `any`
-- **Ngôn ngữ comment:** Tiếng Việt OK cho business logic, English cho technical docs
-- **Naming:** camelCase cho variables/functions, PascalCase cho classes/types, SCREAMING_SNAKE_CASE cho constants
+- **Code language:** TypeScript strict mode, never use `any`
+- **Comment language:** English for all comments
+- **Naming:** camelCase for variables/functions, PascalCase for classes/types, SCREAMING_SNAKE_CASE for constants
 - **File naming:** kebab-case (`ingest.controller.ts`, `agent-detection.service.ts`)
 
 ### NestJS conventions
-- Mỗi feature = 1 module (`IngestModule`, `AnalyticsModule`, `SitesModule`, `AuthModule`)
-- Controller chỉ handle HTTP — logic đẩy xuống Service
-- Dùng `@InjectQueue()` cho BullMQ, không gọi queue trực tiếp trong controller
-- DTOs dùng `class-validator` decorators, không validate thủ công
-- Dùng `ConfigService` để access env vars, không dùng `process.env` trực tiếp
-- Response format nhất quán:
+- Each feature = 1 module (`IngestModule`, `AnalyticsModule`, `SitesModule`, `AuthModule`)
+- Controllers only handle HTTP — push logic down to Services
+- Use `@InjectQueue()` for BullMQ, never call queue directly in controller
+- DTOs use `class-validator` decorators, no manual validation
+- Use `ConfigService` to access env vars, never use `process.env` directly
+- Consistent response format:
   ```typescript
   // Success
   { data: T, meta?: PaginationMeta }
-  // Error — NestJS exception filter tự xử lý
+  // Error — handled by NestJS exception filter
   ```
 
 ### Database conventions
-- Prisma schema là source of truth
-- Migration: `npx prisma migrate dev --name <tên>` — đặt tên mô tả, VD: `add_agent_confidence_column`
-- Raw SQL chỉ dùng khi cần performance (analytics aggregation) — dùng `prisma.$queryRaw`
-- Không bao giờ query trực tiếp trong Controller
+- Prisma schema is the source of truth
+- Migration: `npx prisma migrate dev --name <name>` — use descriptive names, e.g. `add_agent_confidence_column`
+- Raw SQL only when needed for performance (analytics aggregation) — use `prisma.$queryRaw`
+- Never query directly in Controller
 
 ### Queue conventions (BullMQ)
 ```typescript
-// Luôn set removeOnComplete và attempts
+// Always set removeOnComplete and attempts
 await queue.add('process', data, {
   removeOnComplete: true,
-  removeOnFail: false,   // giữ lại failed jobs để debug
+  removeOnFail: false,   // keep failed jobs for debugging
   attempts: 3,
   backoff: { type: 'exponential', delay: 2000 }
 });
 ```
 
 ### Cache conventions
-- Cache key pattern: `{entity}:{id}:{params}` — VD: `overview:site-123:7d`
-- Default TTL: 300 giây (5 phút) cho analytics queries
-- Luôn invalidate cache khi có write operation liên quan
+- Cache key pattern: `{entity}:{id}:{params}` — e.g. `overview:site-123:7d`
+- Default TTL: 300 seconds (5 minutes) for analytics queries
+- Always invalidate cache on related write operations
 
 ---
 
@@ -87,20 +87,20 @@ await queue.add('process', data, {
 
 ### Rate Limiting (Ingest API)
 ```
-Free:      100 requests/phút per site
-Starter:   500 requests/phút per site
-Pro:       2000 requests/phút per site
+Free:      100 requests/min per site
+Starter:   500 requests/min per site
+Pro:       2000 requests/min per site
 Enterprise: Custom
 ```
 
-### Plan Limits (events/tháng)
+### Plan Limits (events/month)
 ```
 Free:      10,000
 Starter:   100,000
 Pro:       1,000,000
 Enterprise: Unlimited
 ```
-→ Khi vượt limit: reject events, trả về 429, không drop silently
+→ When limit exceeded: reject events, return 429, never drop silently
 
 ### Agent Detection Confidence Score
 ```
@@ -109,13 +109,13 @@ Layer 2 (Behavioral):        confidence = 60
 Layer 3 (Pattern):           confidence = 40
 Combined layers:             confidence = max + 5 per extra layer
 ```
-→ Chỉ mark `is_agent = true` khi confidence >= 50
+→ Only mark `is_agent = true` when confidence >= 50
 
 ### Data Retention
 ```
-Free:    30 ngày
-Starter: 90 ngày
-Pro:     1 năm
+Free:    30 days
+Starter: 90 days
+Pro:     1 year
 ```
 
 ---
@@ -147,7 +147,7 @@ export const KNOWN_AGENTS = {
 ```typescript
 // Request body
 {
-  siteId: string;          // API key của site
+  siteId: string;          // Site API key
   url: string;             // Full URL
   action: 'pageview' | 'click' | 'fetch' | 'error';
   agent: {
@@ -159,7 +159,7 @@ export const KNOWN_AGENTS = {
   meta?: Record<string, unknown>;
 }
 
-// Response (luôn 202, không leak errors ra ngoài)
+// Response (always 202, never leak errors to client)
 { ok: true }
 ```
 
@@ -176,7 +176,7 @@ export const KNOWN_AGENTS = {
     humanRequests: number;
     agentRatio: number;
     uniqueAgents: number;
-    agentChange: number;    // % so với period trước
+    agentChange: number;    // % change vs previous period
     topAgents: Array<{ name: string; count: number; ratio: number }>;
   }
 }
@@ -192,25 +192,25 @@ POST /collect
   → ThrottlerGuard (rate limit by siteId)
   → IngestController.collect()
   → Validate DTO
-  → Enrich với server-side UA detection
+  → Enrich with server-side UA detection
   → eventsQueue.add('process', data)
   → return 202 { ok: true }
 
 Worker: ProcessEventJob
   → Validate site exists & within plan limits
-  → Deduplicate (Redis SET với TTL 1s)
-  → Insert vào PostgreSQL
+  → Deduplicate (Redis SET with TTL 1s)
+  → Insert into PostgreSQL
   → Update daily aggregates
 ```
 
 ### Analytics query pattern
 ```typescript
-// Luôn check cache trước
+// Always check cache first
 async getOverview(siteId: string, range: string) {
   const cacheKey = `overview:${siteId}:${range}`;
 
   return this.cache.wrap(cacheKey, 300, async () => {
-    // Raw SQL cho performance
+    // Raw SQL for performance
     return this.prisma.$queryRaw`
       SELECT ...
       FROM events
@@ -250,14 +250,14 @@ NODE_ENV=development
 
 ## What NOT to do
 
-- ❌ Không dùng Express adapter — luôn dùng Fastify
-- ❌ Không query DB trong Controller
-- ❌ Không dùng `process.env` trực tiếp — dùng `ConfigService`
-- ❌ Không block ingest response — mọi thứ phải qua queue
-- ❌ Không store PII của end users — chỉ aggregate data
-- ❌ Không dùng `any` trong TypeScript
-- ❌ Không tạo index migration mà không có `CONCURRENTLY` (PostgreSQL sẽ lock table)
-- ❌ Không hardcode agent list trong code — import từ `@agent-analytics/types`
+- Do NOT use Express adapter — always use Fastify
+- Do NOT query DB in Controller
+- Do NOT use `process.env` directly — use `ConfigService`
+- Do NOT block ingest response — everything must go through queue
+- Do NOT store PII of end users — only aggregate data
+- Do NOT use `any` in TypeScript
+- Do NOT create index migrations without `CONCURRENTLY` (PostgreSQL will lock table)
+- Do NOT hardcode agent list in code — import from `@agent-analytics/types`
 
 ---
 
@@ -265,11 +265,11 @@ NODE_ENV=development
 
 ```bash
 # Start dev
-pnpm dev                              # Chạy tất cả apps
+pnpm dev                              # Run all apps
 
 # Database
-npx prisma migrate dev --name <name>  # Tạo migration mới
-npx prisma studio                     # GUI xem database
+npx prisma migrate dev --name <name>  # Create new migration
+npx prisma studio                     # GUI to browse database
 
 # Queue
 # BullMQ dashboard: http://localhost:3000/admin/queues (Bull Board)
@@ -303,8 +303,8 @@ pnpm test:e2e                         # E2E tests
 
 | Date       | Decision                              | Reason                                          |
 |------------|---------------------------------------|-------------------------------------------------|
-| 2026-02-22 | NestJS thay vì Laravel                | Team không biết PHP, full JS/TS stack           |
-| 2026-02-22 | Fastify adapter thay vì Express       | Ingest API cần throughput cao                   |
-| 2026-02-22 | BullMQ thay vì direct DB write        | Không block ingest response, handle burst load  |
-| 2026-02-22 | PostgreSQL partition by timestamp     | Events table sẽ rất lớn, query theo range phổ biến |
-| 2026-02-22 | Turborepo monorepo                    | Share types giữa tracker, API, dashboard        |
+| 2026-02-22 | NestJS instead of Laravel             | Team prefers JS/TS, full JS/TS stack            |
+| 2026-02-22 | Fastify adapter instead of Express    | Ingest API needs high throughput                |
+| 2026-02-22 | BullMQ instead of direct DB write     | Don't block ingest response, handle burst load  |
+| 2026-02-22 | PostgreSQL partition by timestamp     | Events table will grow large, range queries are common |
+| 2026-02-22 | Turborepo monorepo                    | Share types between tracker, API, dashboard     |

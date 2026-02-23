@@ -5,10 +5,10 @@ import { sendEvent, createEvent } from './collect';
 /**
  * Agent Analytics Tracker
  *
- * Nhúng qua script tag:
+ * Embed via script tag:
  * <script async src="tracker.js" data-site="aa_xxxxx"></script>
  *
- * Hoặc init thủ công:
+ * Or init manually:
  * AgentAnalytics.init({ siteId: 'aa_xxxxx', endpoint: 'https://api.agentanalytics.io' })
  */
 
@@ -20,11 +20,11 @@ interface TrackerConfig {
 let config: TrackerConfig | null = null;
 let agentInfo: AgentInfo | null = null;
 
-// Lưu reference sớm vì document.currentScript = null sau khi script execute xong
+// Capture reference early because document.currentScript becomes null after script execution
 const currentScript = document.currentScript as HTMLScriptElement | null;
 
 function init(options: Partial<TrackerConfig> = {}): void {
-  // Lấy config từ script tag hoặc options
+  // Get config from script tag or options
   const siteId = options.siteId || currentScript?.getAttribute('data-site') || '';
   const endpoint =
     options.endpoint ||
@@ -38,13 +38,13 @@ function init(options: Partial<TrackerConfig> = {}): void {
 
   config = { siteId, endpoint };
 
-  // Detect agent ngay
+  // Detect agent immediately
   agentInfo = detectAgent();
 
   // Register behavioral callback
   window.__agentAnalyticsBehavioralCallback = (updatedAgent: AgentInfo) => {
     agentInfo = updatedAgent;
-    // Gửi lại pageview với thông tin mới
+    // Re-send pageview with updated agent info
     track('pageview');
   };
 
@@ -71,7 +71,7 @@ function track(
 }
 
 function trackSPANavigation(): void {
-  // Override pushState và replaceState để detect SPA navigation
+  // Override pushState and replaceState to detect SPA navigation
   const originalPushState = history.pushState.bind(history);
   const originalReplaceState = history.replaceState.bind(history);
 
@@ -90,7 +90,7 @@ function trackSPANavigation(): void {
   });
 }
 
-// Auto-init khi load qua script tag
+// Auto-init when loaded via script tag
 if (currentScript) {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => init());
@@ -99,5 +99,5 @@ if (currentScript) {
   }
 }
 
-// Export cho manual init
+// Export for manual init
 export { init, track };

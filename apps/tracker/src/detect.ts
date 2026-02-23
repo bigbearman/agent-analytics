@@ -2,7 +2,7 @@ import { KNOWN_AGENTS, CONFIDENCE, type KnownAgentName, type AgentInfo } from '@
 
 /**
  * Layer 1: Client-side User Agent matching
- * Kiểm tra UA string có match với known AI agents không
+ * Check if UA string matches known AI agents
  */
 function matchUserAgent(): { name: KnownAgentName; confidence: number } | null {
   const ua = navigator.userAgent;
@@ -16,9 +16,9 @@ function matchUserAgent(): { name: KnownAgentName; confidence: number } | null {
 
 /**
  * Layer 2: Behavioral detection
- * - Không có mousemove trong 5 giây đầu
- * - Không có scroll events
- * - Không có focus/blur events
+ * - No mousemove within first 5 seconds
+ * - No scroll events
+ * - No focus/blur events
  */
 function detectBehavioral(): Promise<{ isBot: boolean; confidence: number }> {
   return new Promise((resolve) => {
@@ -35,7 +35,7 @@ function detectBehavioral(): Promise<{ isBot: boolean; confidence: number }> {
     window.addEventListener('focus', onFocus, { once: true });
     window.addEventListener('blur', onFocus, { once: true });
 
-    // Check sau 5 giây
+    // Check after 5 seconds
     setTimeout(() => {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('scroll', onScroll);
@@ -52,7 +52,7 @@ function detectBehavioral(): Promise<{ isBot: boolean; confidence: number }> {
 }
 
 /**
- * Detect agent — fire ngay Layer 1 (UA), Layer 2 (behavioral) chạy background
+ * Detect agent — fire Layer 1 (UA) immediately, Layer 2 (behavioral) runs in background
  */
 export function detectAgent(): AgentInfo {
   const uaMatch = matchUserAgent();
@@ -65,7 +65,7 @@ export function detectAgent(): AgentInfo {
     };
   }
 
-  // Chạy behavioral detection background, gửi update sau
+  // Run behavioral detection in background, send update later
   detectBehavioral().then((result) => {
     if (result.isBot && typeof window.__agentAnalyticsBehavioralCallback === 'function') {
       window.__agentAnalyticsBehavioralCallback({

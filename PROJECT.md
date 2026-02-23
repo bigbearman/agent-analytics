@@ -1,19 +1,19 @@
 # Agent Access Analytics — Project Context
 
 ## Overview
-Analytics platform chuyên biệt cho AI agent traffic. Website owners nhúng một JS snippet để track và phân tích AI agent behavior (ChatGPT, Claude, Perplexity, Gemini...) trên website của họ — thứ mà Google Analytics không làm được.
+Specialized analytics platform for AI agent traffic. Website owners embed a JS snippet to track and analyze AI agent behavior (ChatGPT, Claude, Perplexity, Gemini...) on their websites — something Google Analytics can't do.
 
 ## Problem
-- Google Analytics đo người, không đo agent
-- AI agent traffic tăng mạnh nhưng không ai track được
-- Không biết agent nào đang dùng site, tần suất, action, lỗi gì
-- First-mover opportunity — chưa có competitor focused vào segment này
+- Google Analytics measures people, not agents
+- AI agent traffic is growing rapidly but no one can track it
+- No visibility into which agents are using a site, their frequency, actions, or errors
+- First-mover opportunity — no competitor focused on this segment yet
 
 ## Solution
-- JS embed snippet (< 3KB, vanilla TS, không dependency)
+- JS embed snippet (< 3KB, vanilla TS, no dependencies)
 - Server-side + behavioral + pattern detection (3 layers)
 - Real-time dashboard: agent vs human, top pages, top actions, timeline
-- SaaS subscription theo volume
+- SaaS subscription by volume
 
 ---
 
@@ -22,8 +22,8 @@ Analytics platform chuyên biệt cho AI agent traffic. Website owners nhúng m�
 ### Backend
 - **Framework:** NestJS + Fastify adapter (high throughput ingest)
 - **Queue:** BullMQ + Redis (async event processing)
-- **Database:** PostgreSQL với table partitioning theo ngày
-- **Cache:** Redis (pre-aggregated analytics, TTL 5 phút)
+- **Database:** PostgreSQL with table partitioning by day
+- **Cache:** Redis (pre-aggregated analytics, TTL 5 minutes)
 - **Auth:** JWT, per-site API keys, multi-tenant
 
 ### Frontend
@@ -32,13 +32,13 @@ Analytics platform chuyên biệt cho AI agent traffic. Website owners nhúng m�
 - **Styling:** TailwindCSS
 
 ### Tracker
-- Vanilla TypeScript → bundle ES module nhỏ
+- Vanilla TypeScript → small ES module bundle
 - Auto detect agent via UA + behavioral signals
-- Fire-and-forget POST, không block page load
+- Fire-and-forget POST, does not block page load
 
 ### Monorepo
 - **Tool:** Turborepo
-- **Shared packages:** `@agent-analytics/types` (TypeScript types dùng chung)
+- **Shared packages:** `@agent-analytics/types` (shared TypeScript types)
 
 ---
 
@@ -49,7 +49,7 @@ agent-analytics/
 ├── apps/
 │   ├── api/                        # NestJS backend
 │   │   └── src/
-│   │       ├── ingest/             # Nhận events từ tracker
+│   │       ├── ingest/             # Receive events from tracker
 │   │       ├── analytics/          # Query, aggregate, cache
 │   │       ├── sites/              # Site management, API keys
 │   │       ├── auth/               # JWT auth, user management
@@ -114,20 +114,20 @@ CREATE INDEX idx_events_agent_name ON events(agent_name, timestamp DESC);
 
 ## Agent Detection — 3 Layers
 
-### Layer 1: Server-side User Agent (tin cậy nhất)
+### Layer 1: Server-side User Agent (most reliable)
 Known bots: GPTBot, ClaudeBot, Claude-Web, Google-Extended, PerplexityBot, ByteSpider, FacebookBot, Applebot, Amazonbot, DuckAssistant, YouBot
 
 ### Layer 2: Behavioral (client-side)
-- Không có mousemove trong 5 giây đầu
-- Không có scroll events
-- Request timing quá đều đặn
-- Không có focus/blur events
+- No mousemove within first 5 seconds
+- No scroll events
+- Overly regular request timing
+- No focus/blur events
 
 ### Layer 3: Request Patterns (server-side)
-- Không có Referer header
-- Accept header bất thường
-- Không load assets phụ (img, css, fonts)
-- Burst requests từ cùng IP
+- Missing Referer header
+- Unusual Accept header
+- Does not load secondary assets (img, css, fonts)
+- Burst requests from same IP
 
 ---
 
@@ -135,13 +135,13 @@ Known bots: GPTBot, ClaudeBot, Claude-Web, Google-Extended, PerplexityBot, ByteS
 
 ### Ingest (public, rate-limited)
 ```
-POST /collect                  # Nhận event từ tracker
+POST /collect                  # Receive event from tracker
 ```
 
 ### Analytics (authenticated)
 ```
-GET /analytics/overview        # Tổng quan: total, agent%, unique agents
-GET /analytics/agents          # Breakdown theo agent name
+GET /analytics/overview        # Overview: total, agent%, unique agents
+GET /analytics/agents          # Breakdown by agent name
 GET /analytics/pages           # Top pages by agent traffic
 GET /analytics/actions         # Top actions
 GET /analytics/timeline        # Time series data
@@ -150,8 +150,8 @@ GET /analytics/timeline        # Time series data
 ### Sites (authenticated)
 ```
 GET    /sites                  # List sites
-POST   /sites                  # Tạo site mới
-GET    /sites/:id/snippet      # Lấy embed snippet
+POST   /sites                  # Create new site
+GET    /sites/:id/snippet      # Get embed snippet
 POST   /sites/:id/rotate-key   # Rotate API key
 ```
 
@@ -190,8 +190,8 @@ export interface AnalyticsOverview {
 | Plan       | Price      | Events/month | Sites     |
 |------------|------------|--------------|-----------|
 | Free       | $0         | 10K          | 1         |
-| Starter    | $29/tháng  | 100K         | 5         |
-| Pro        | $99/tháng  | 1M           | Unlimited |
+| Starter    | $29/month  | 100K         | 5         |
+| Pro        | $99/month  | 1M           | Unlimited |
 | Enterprise | Custom     | Unlimited    | Custom    |
 
 ---
@@ -228,7 +228,7 @@ TRACKER_URL=https://cdn.agentanalytics.io/tracker.js
 
 ## Non-goals (MVP)
 - Mobile SDK
-- Custom event tracking (chỉ auto-track)
+- Custom event tracking (auto-track only)
 - Historical data import
 - Team collaboration features
 - White-label

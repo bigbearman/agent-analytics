@@ -20,11 +20,11 @@ export class SitesService {
   }
 
   async create(userId: string, dto: CreateSiteDto) {
-    // Check plan limit cho số sites
+    // Check plan limit for number of sites
     const currentSites = await this.prisma.site.count({ where: { userId } });
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
-    // Lấy plan từ site đầu tiên (simplified — production sẽ có user plan)
+    // Get plan from first site (simplified — production will have user plan)
     const firstSite = await this.prisma.site.findFirst({ where: { userId } });
     const plan = (firstSite?.plan ?? 'free') as PlanType;
     const maxSites = PLAN_LIMITS[plan].sites;

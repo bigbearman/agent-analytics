@@ -25,7 +25,7 @@ export class AgentDetectionService {
   /**
    * 3-layer agent detection:
    * Layer 1: Server UA match (confidence = 95)
-   * Layer 2: Behavioral signals từ client (confidence = 60)
+   * Layer 2: Behavioral signals from client (confidence = 60)
    * Layer 3: Request pattern analysis (confidence = 40)
    * Combined: max + 5 per extra layer
    */
@@ -40,7 +40,7 @@ export class AgentDetectionService {
       agentName = uaMatch;
     }
 
-    // Layer 2: Behavioral signals (từ client-side tracker)
+    // Layer 2: Behavioral signals (from client-side tracker)
     if (clientAgent?.isAgent && clientAgent.confidence >= CONFIDENCE.PATTERN) {
       layers.push(CONFIDENCE.BEHAVIORAL);
       if (!agentName && clientAgent.agentName) {
@@ -83,17 +83,17 @@ export class AgentDetectionService {
   private analyzeRequestPatterns(ctx: RequestContext): number {
     let score = 0;
 
-    // Không có Referer header
+    // Missing Referer header
     if (!ctx.referer) {
       score += 15;
     }
 
-    // Accept header bất thường (không chứa text/html)
+    // Unusual Accept header (does not contain text/html)
     if (ctx.accept && !ctx.accept.includes('text/html')) {
       score += 15;
     }
 
-    // Accept header trống hoặc wildcard
+    // Empty or wildcard Accept header
     if (!ctx.accept || ctx.accept === '*/*') {
       score += 10;
     }

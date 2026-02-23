@@ -21,7 +21,7 @@ export class IngestService {
   ) {}
 
   async enqueue(dto: CollectEventDto, ctx: RequestContext): Promise<void> {
-    // Enrich với server-side agent detection
+    // Enrich with server-side agent detection
     const serverDetection = this.agentDetection.detect(ctx, dto.agent);
 
     const enrichedEvent = {
