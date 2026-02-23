@@ -3,9 +3,10 @@ import { Globe, Key, Copy, RefreshCw, Code } from 'lucide-react';
 import { useSites, useCreateSite, useRotateApiKey } from '../hooks/use-sites';
 
 const TRACKER_URL = 'https://pub-734a26198d39470eb9a7702060cae3a1.r2.dev/tracker.js';
+const API_ENDPOINT = 'https://api-production-feb6.up.railway.app';
 
 function getEmbedSnippet(siteId: string) {
-  return `<script src="${TRACKER_URL}" data-site-id="${siteId}" defer></script>`;
+  return `<script src="${TRACKER_URL}" data-site="${siteId}" data-endpoint="${API_ENDPOINT}" defer></script>`;
 }
 
 export function SitesPage() {
