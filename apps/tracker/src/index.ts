@@ -20,13 +20,15 @@ interface TrackerConfig {
 let config: TrackerConfig | null = null;
 let agentInfo: AgentInfo | null = null;
 
+// Lưu reference sớm vì document.currentScript = null sau khi script execute xong
+const currentScript = document.currentScript as HTMLScriptElement | null;
+
 function init(options: Partial<TrackerConfig> = {}): void {
   // Lấy config từ script tag hoặc options
-  const script = document.currentScript as HTMLScriptElement | null;
-  const siteId = options.siteId || script?.getAttribute('data-site') || '';
+  const siteId = options.siteId || currentScript?.getAttribute('data-site') || '';
   const endpoint =
     options.endpoint ||
-    script?.getAttribute('data-endpoint') ||
+    currentScript?.getAttribute('data-endpoint') ||
     window.location.origin;
 
   if (!siteId) {
@@ -89,7 +91,7 @@ function trackSPANavigation(): void {
 }
 
 // Auto-init khi load qua script tag
-if (document.currentScript) {
+if (currentScript) {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => init());
   } else {
