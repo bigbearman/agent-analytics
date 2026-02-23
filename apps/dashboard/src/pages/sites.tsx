@@ -1,6 +1,12 @@
 import { useState, FormEvent } from 'react';
-import { Globe, Key, Copy, RefreshCw } from 'lucide-react';
+import { Globe, Key, Copy, RefreshCw, Code } from 'lucide-react';
 import { useSites, useCreateSite, useRotateApiKey } from '../hooks/use-sites';
+
+const TRACKER_URL = 'https://pub-734a26198d39470eb9a7702060cae3a1.r2.dev/tracker.js';
+
+function getEmbedSnippet(siteId: string) {
+  return `<script src="${TRACKER_URL}" data-site-id="${siteId}" defer></script>`;
+}
 
 export function SitesPage() {
   const { data, isLoading } = useSites();
@@ -107,6 +113,31 @@ export function SitesPage() {
               {copied === site.id && (
                 <p className="mt-2 text-xs text-green-600">Copied to clipboard!</p>
               )}
+
+              {/* Embed snippet */}
+              <div className="mt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Code size={14} className="text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Embed snippet
+                  </span>
+                </div>
+                <div className="relative bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                  <code className="block text-sm text-gray-600 dark:text-gray-400 font-mono break-all">
+                    {getEmbedSnippet(site.apiKey)}
+                  </code>
+                  <button
+                    onClick={() => copyToClipboard(getEmbedSnippet(site.apiKey), `snippet-${site.id}`)}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    title="Copy snippet"
+                  >
+                    <Copy size={14} />
+                  </button>
+                </div>
+                {copied === `snippet-${site.id}` && (
+                  <p className="mt-1 text-xs text-green-600">Snippet copied!</p>
+                )}
+              </div>
             </div>
           ))}
         </div>
