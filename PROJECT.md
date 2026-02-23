@@ -1,26 +1,37 @@
-# Agent Access Analytics — Project Context
+# AgentPulse — Project Context
+
+> Pivoted from "Agent Access Analytics" (generic bot tracking) to "AgentPulse"
+> (AI commerce analytics) based on market research — Feb 2026.
 
 ## Overview
-Specialized analytics platform for AI agent traffic. Website owners embed a JS snippet to track and analyze AI agent behavior (ChatGPT, Claude, Perplexity, Gemini...) on their websites — something Google Analytics can't do.
 
-**Vision:** The control layer between websites and AI agents — track, control, monetize.
+**AgentPulse** is the analytics platform for AI agent commerce. E-commerce store owners
+install our Shopify app / WooCommerce plugin to track how AI shopping agents (ChatGPT Shopping,
+Google AI Mode, Perplexity Buy...) discover, evaluate, and purchase from their stores — something
+Google Analytics can't do.
 
-> Full product spec: [docs/SPEC.md](docs/SPEC.md)
+**Vision:** Google Analytics for the AI Shopping era.
+
+> Product spec: [docs/SPEC-v2.md](docs/SPEC-v2.md)
+> Business model: [docs/BUSINESS-MODEL.md](docs/BUSINESS-MODEL.md)
+> Previous spec (v1 — archived): [docs/SPEC.md](docs/SPEC.md)
 
 ## Problem
-- Google Analytics measures people, not agents
-- AI agent traffic is growing rapidly but no one can track it
-- No visibility into which agents are using a site, their frequency, actions, or errors
-- Publishers have no way to control or monetize AI access to their content
-- First-mover opportunity — no competitor focused on this segment yet
+- AI shopping agents (ChatGPT, Google AI Mode, Perplexity) drive growing e-commerce traffic
+- Google Analytics is blind to AI agents — no cookies, no sessions, no JS
+- Merchants get orders from AI agents but have zero visibility into the funnel
+- Attribution models break: no last-click, no UTM, no referrer
+- Can't optimize what you can't measure — agent commerce converts 86% worse than affiliate
+- McKinsey estimates $3-5 trillion in agent-mediated commerce by 2030
 
 ## Solution
-- JS embed snippet (< 3KB, vanilla TS, no dependencies)
-- Server-side + behavioral + pattern detection (3 layers)
-- Real-time dashboard: agent vs human, top pages, top actions, timeline
-- Rules engine: allow, block, rate-limit, redirect AI agents
-- Metered access: publishers charge AI companies for content access
-- SaaS subscription + revenue share model
+- Server-side + client-side tracking for AI shopping agent detection
+- Full agent commerce funnel visualization (discovery → view → cart → purchase)
+- Product readiness scoring (how well can AI agents understand your products)
+- Agent attribution engine (revenue by agent source)
+- Competitive intelligence (monitor how agents see your competitors)
+- AI-powered optimization suggestions
+- Shopify app + WooCommerce plugin + generic middleware
 
 ---
 
@@ -148,94 +159,52 @@ Known bots: GPTBot, ClaudeBot, Claude-Web, Google-Extended, PerplexityBot, ByteS
 
 ### Ingest (public, rate-limited)
 ```
-POST /collect                  # Receive event from tracker
+POST /collect                  # Receive event (extended with commerce fields)
 ```
 
 ### Analytics (authenticated)
 ```
-GET /analytics/overview        # Overview: total, agent%, unique agents
-GET /analytics/agents          # Breakdown by agent name
-GET /analytics/pages           # Top pages by agent traffic
-GET /analytics/actions         # Top actions
+GET /analytics/agent-overview  # Agent traffic overview + revenue
+GET /analytics/agent-funnel    # Commerce funnel per agent source
+GET /analytics/agent-attribution # Revenue attribution by agent
+GET /analytics/agent-products  # Per-product agent analytics
 GET /analytics/timeline        # Time series data
-GET /analytics/blocked         # Blocked requests stats (Phase 2)
-GET /analytics/agents/:name    # Agent profile details (Phase 2)
-GET /analytics/rule-hits       # Rule action breakdown (Phase 2)
 ```
 
-### Sites (authenticated)
+### Readiness (authenticated)
 ```
-GET    /sites                  # List sites
-POST   /sites                  # Create new site
-GET    /sites/:id/snippet      # Get embed snippet
-POST   /sites/:id/rotate-key   # Rotate API key
-```
-
-### Rules (authenticated, Phase 2)
-```
-POST   /rules                  # Create rule
-GET    /rules?siteId=xxx       # List rules for site
-PUT    /rules/:id              # Update rule
-DELETE /rules/:id              # Delete rule
-PATCH  /rules/:id/toggle       # Enable/disable rule
-POST   /rules/reorder          # Reorder priorities
-GET    /rules/preview          # Preview generated robots.txt
-POST   /rules/deploy           # Deploy robots.txt to site
+POST /readiness/scan           # Trigger product catalog scan
+GET  /readiness/score          # Store + per-product readiness scores
+POST /readiness/fix            # Apply auto-fixes
 ```
 
-### Enforcement (edge, Phase 2)
+### Competitive Intelligence (authenticated)
 ```
-GET    /enforce                # Edge middleware decision endpoint (< 50ms)
-```
-
-### Alerts (authenticated, Phase 2)
-```
-POST   /alerts                 # Create alert
-GET    /alerts?siteId=xxx      # List alerts
-PUT    /alerts/:id             # Update alert
-DELETE /alerts/:id             # Delete alert
+POST /competitors/track        # Set up category + competitor tracking
+GET  /competitors/report       # Competitive positioning report
 ```
 
----
-
-## Shared Types (packages/types)
-
-```typescript
-export interface AgentEvent {
-  siteId: string;
-  url: string;
-  action: 'pageview' | 'click' | 'fetch' | 'error';
-  agent: {
-    isAgent: boolean;
-    agentName: string;
-    confidence: number;       // 0-100
-  };
-  timestamp: number;
-  meta?: Record<string, unknown>;
-}
-
-export interface AnalyticsOverview {
-  totalRequests: number;
-  agentRequests: number;
-  humanRequests: number;
-  agentRatio: number;         // percentage
-  uniqueAgents: number;
-  agentChange: number;        // % change vs previous period
-}
+### Stores (authenticated)
+```
+GET    /stores                 # List stores
+POST   /stores                 # Create new store
+GET    /stores/:id/snippet     # Get tracking snippet
+POST   /stores/:id/rotate-key  # Rotate API key
 ```
 
 ---
 
 ## Business Model
 
-| Plan       | Price      | Events/month | Sites     | Rules | Enforcement | Metered Access |
-|------------|------------|--------------|-----------|-------|-------------|----------------|
-| Free       | $0         | 10K          | 1         | 3     | No          | No             |
-| Starter    | $29/month  | 100K         | 5         | 10    | Edge        | No             |
-| Pro        | $99/month  | 1M           | Unlimited | Unlimited | Edge + DNS | Yes         |
-| Enterprise | Custom     | Unlimited    | Custom    | Unlimited | Full + SLA | Yes + marketplace |
+| Plan | Price | Stores | Products | Key Features |
+|------|-------|--------|----------|--------------|
+| Free | $0 | 1 | 100 | Agent dashboard, basic readiness, 7d retention |
+| Growth | $49/mo | 3 | 1,000 | Full funnel, attribution, optimizer, 90d retention |
+| Pro | $149/mo | 10 | 10,000 | Competitive intel, auto-fix, API, 1yr retention |
+| Agency | $399/mo | 50 | Unlimited | White-label, client reports, team seats |
+| Enterprise | Custom | Unlimited | Unlimited | Custom integrations, SLA, dedicated CSM |
 
-**Metered Access revenue share:** Publisher 80% / Platform 20%
+> Full business model: [docs/BUSINESS-MODEL.md](docs/BUSINESS-MODEL.md)
 
 ---
 
@@ -252,42 +221,41 @@ JWT_EXPIRES_IN=7d
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 
+# Shopify
+SHOPIFY_API_KEY=
+SHOPIFY_API_SECRET=
+
 # App
-APP_URL=https://agentanalytics.io
-TRACKER_URL=https://cdn.agentanalytics.io/tracker.js
+APP_URL=https://agentpulse.io
+TRACKER_URL=https://cdn.agentpulse.io/tracker.js
+NODE_ENV=development
 ```
 
 ---
 
 ## Non-goals (Current)
 - Mobile SDK
-- Custom event tracking (auto-track only)
-- Historical data import
-- White-label
+- Agentic Commerce control/blocking (Cloudflare's territory)
+- Content licensing/monetization (TollBit's territory)
+- General SEO/AEO tools (Semrush's territory)
+- Custom store builder (platform territory)
 
 ---
 
 # Roadmap & Progress
 
-## Phase 1: Track (MVP) — Analytics Foundation
+## Existing Foundation (from v1 — reusable)
 
-### 1.1 Infrastructure
+### Infrastructure ✅
 - [x] Turborepo monorepo setup
 - [x] Docker Compose (PostgreSQL + Redis)
 - [x] Deploy API to Railway
 - [x] Deploy Dashboard to Vercel
 - [x] Deploy Tracker to Cloudflare R2
 
-### 1.2 Tracker (apps/tracker)
-- [x] Vanilla TS embed snippet (< 3KB)
-- [x] Client-side agent detection (Layer 2: behavioral)
-- [x] Fire-and-forget POST /collect
-- [x] data-site and data-endpoint attributes
-- [x] Edge Middleware option (Vercel)
-
-### 1.3 Ingest API (apps/api)
+### Ingest Pipeline ✅
 - [x] POST /collect endpoint
-- [x] ThrottlerGuard rate limiting by siteId
+- [x] ThrottlerGuard rate limiting
 - [x] DTO validation with class-validator
 - [x] Server-side UA detection (Layer 1)
 - [x] BullMQ queue for async processing
@@ -295,168 +263,192 @@ TRACKER_URL=https://cdn.agentanalytics.io/tracker.js
 - [x] Site validation + plan limit checks
 - [x] Redis deduplication (1s TTL)
 - [x] PostgreSQL event insertion
-- [ ] Daily aggregate table updates
-- [ ] Request pattern detection (Layer 3)
 
-### 1.4 Analytics API (apps/api)
-- [x] GET /analytics/overview
-- [x] GET /analytics/timeline
-- [ ] GET /analytics/agents (breakdown by agent)
-- [ ] GET /analytics/pages (top pages)
-- [ ] GET /analytics/actions (top actions)
-- [ ] Redis cache wrapper (TTL 5min)
-- [ ] Previous period comparison (agentChange %)
-
-### 1.5 Auth & Sites (apps/api)
+### Auth & Sites ✅
 - [x] JWT authentication
 - [x] User registration and login
-- [x] Site CRUD
-- [x] API key generation
+- [x] Site CRUD + API keys
 - [x] Embed snippet display
-- [x] API key rotation
-- [ ] Email verification
-- [ ] Password reset
 
-### 1.6 Dashboard (apps/dashboard)
+### Dashboard Shell ✅
 - [x] Login / Register pages
 - [x] Sites list page
 - [x] Overview dashboard (stats cards + chart)
-- [x] Embed snippet display
-- [ ] Agent breakdown table
-- [ ] Top pages table
-- [ ] Date range picker (1d / 7d / 30d)
-- [ ] Empty states and onboarding flow
-- [ ] Responsive mobile layout
 
-### 1.7 Shared Types (packages/types)
-- [x] AgentEvent interface
-- [x] AnalyticsOverview interface
+### Agent Detection ✅ (partial)
+- [x] Layer 1: Server UA match (95 confidence)
+- [x] Layer 2: Behavioral signals (60 confidence)
 - [x] KNOWN_AGENTS constant
-- [ ] Rule types (for Phase 2)
-- [ ] Alert types (for Phase 2)
+- [ ] Layer 3: Request patterns (40 confidence)
 
 ---
 
-## Phase 2: Control — Rules Engine & Enforcement
+## Phase 1: Pivot to AgentPulse (Month 1-3)
 
-### 2.1 Database
-- [ ] Create `rules` table + migration
-- [ ] Create `rule_actions_log` partitioned table + migration
-- [ ] Create `alerts` table + migration
-- [ ] Add indexes with CONCURRENTLY
+### 1.1 Extend Data Model for Commerce
+- [ ] Add commerce fields to events table (event_type, product_id, product_price, order_id, order_value, agent_source)
+- [ ] Create `agent_sessions` partitioned table
+- [ ] Create `daily_agent_stats` aggregate table
+- [ ] Create `product_readiness` table
+- [ ] Run migrations with CONCURRENTLY indexes
+- [ ] Update Prisma schema
 
-### 2.2 Rules Engine (apps/api — RulesModule)
-- [ ] CRUD endpoints for rules
-- [ ] Rule priority ordering
-- [ ] Agent pattern matching (exact name, regex, wildcard)
-- [ ] Path glob matching
-- [ ] Schedule support (cron-based rules)
-- [ ] Rule evaluation service (match request → return action)
+### 1.2 Extend Agent Detection for Commerce
+- [ ] Add Layer 4: Commerce signals (referrer from chatgpt.com, perplexity.ai, etc.)
+- [ ] Add shopping agent UAs (ChatGPT-User shopping, Google AI Mode)
+- [ ] Add agent_source classification (chatgpt_shopping, google_ai_mode, perplexity_buy, etc.)
+- [ ] Update event DTO with commerce fields
+- [ ] Server-side session stitching for agents
 
-### 2.3 Enforcement API (apps/api — EnforceModule)
-- [ ] GET /enforce endpoint (< 50ms target)
-- [ ] Redis cache for rules (TTL 60s)
-- [ ] Rate limiting per agent per site (Redis sliding window)
-- [ ] Block response (403 with configurable message)
-- [ ] Redirect response
-- [ ] Challenge/delay response
-- [ ] Rule action logging to rule_actions_log
+### 1.3 Agent Traffic Dashboard (extend existing)
+- [ ] Agent overview endpoint (GET /analytics/agent-overview)
+- [ ] Agent traffic by source (ChatGPT vs Google AI Mode vs Perplexity)
+- [ ] Agent revenue tracking
+- [ ] Agent vs Human traffic split
+- [ ] Dashboard: agent source breakdown table
+- [ ] Dashboard: agent traffic trend chart
+- [ ] Dashboard: revenue by agent source cards
+- [ ] Date range picker (1d / 7d / 30d)
 
-### 2.4 Edge Middleware SDK
-- [ ] Vercel middleware template
-- [ ] Cloudflare Workers template
-- [ ] Next.js middleware template
-- [ ] Nuxt middleware template
-- [ ] NPM package: @agent-analytics/middleware
+### 1.4 Shopify App (Primary Distribution)
+- [ ] Shopify app scaffold (OAuth, App Bridge)
+- [ ] Product catalog sync via Products API
+- [ ] Order webhook integration (attribution)
+- [ ] Auto-inject server-side tracking
+- [ ] Embedded dashboard in Shopify Admin
+- [ ] Shopify App Store listing
+- [ ] App Store SEO optimization
 
-### 2.5 Smart robots.txt Generator
-- [ ] Generate robots.txt from rules
-- [ ] ai.txt support (TDM Reservation Protocol)
-- [ ] Preview endpoint (GET /rules/preview)
-- [ ] Deploy endpoint (POST /rules/deploy)
-- [ ] Diff view: current vs proposed
+### 1.5 Free Scan Tool (Acquisition)
+- [ ] Public endpoint: POST /scan?url=xxx
+- [ ] Crawl store URL for structured data
+- [ ] Detect AI agent traffic from public signals
+- [ ] Generate instant readiness report
+- [ ] Landing page: agentpulse.io/scan
+- [ ] Share-friendly results page (OG tags)
 
-### 2.6 Alerts Service (apps/api — AlertsModule)
-- [ ] Alert CRUD endpoints
-- [ ] New agent detection alert
-- [ ] Traffic spike alert (>200% baseline)
-- [ ] Rate limit threshold alert
+---
+
+## Phase 2: Full Analytics (Month 4-6)
+
+### 2.1 Agent Commerce Funnel
+- [ ] Funnel endpoint (GET /analytics/agent-funnel)
+- [ ] Stage tracking: discovery → view → cart → checkout → purchase
+- [ ] Per-agent-source funnel breakdown
+- [ ] Drop-off analysis with insights
+- [ ] Dashboard: funnel visualization component
+- [ ] Dashboard: drop-off insights panel
+
+### 2.2 Product Readiness Scoring
+- [ ] Product catalog scanner (BullMQ job)
+- [ ] 25-point scoring engine (schema, content, technical)
+- [ ] Per-product score calculation
+- [ ] Issue detection with severity levels
+- [ ] Fix suggestions generator
+- [ ] Readiness API endpoints
+- [ ] Dashboard: store readiness overview
+- [ ] Dashboard: per-product score table
+- [ ] Dashboard: issue breakdown with fix actions
+
+### 2.3 Agent Attribution Engine
+- [ ] Server-side attribution logic
+- [ ] Multi-touch attribution model
+- [ ] Order ↔ agent session matching
+- [ ] Revenue by agent source calculation
+- [ ] Revenue by product × agent source
+- [ ] Attribution API endpoints
+- [ ] Dashboard: attribution report page
+- [ ] Dashboard: revenue breakdown charts
+
+### 2.4 Alerts & Notifications
+- [ ] New agent detected alert
+- [ ] Agent traffic spike alert (>200% baseline)
+- [ ] Readiness score drop alert
 - [ ] Email notification channel
 - [ ] Webhook notification channel
-- [ ] Weekly summary email (cron job)
+- [ ] Weekly summary email
 
-### 2.7 Dashboard — Control Features
-- [ ] Rules management page (create/edit/delete)
-- [ ] Drag-and-drop rule priority
-- [ ] Rule templates (quick presets)
-- [ ] Agent profile page (per-agent details)
-- [ ] Blocked requests log page
-- [ ] robots.txt preview & deploy page
-- [ ] Alerts configuration page
-- [ ] Notification center
-
-### 2.8 Billing Updates
-- [ ] Plan-based rule limits (Free: 3, Starter: 10, Pro: unlimited)
-- [ ] Enforcement feature gating per plan
-- [ ] Stripe integration for Starter + Pro plans
-- [ ] Usage-based overage billing
+### 2.5 WooCommerce Plugin
+- [ ] WordPress plugin scaffold
+- [ ] Server-side middleware injection
+- [ ] WooCommerce order hook integration
+- [ ] Product sync via REST API
+- [ ] Dashboard via iframe
 
 ---
 
-## Phase 3: Monetize — Content Licensing & Metered Access
+## Phase 3: Intelligence (Month 7-10)
 
-### 3.1 Database
-- [ ] Create `access_keys` table + migration
-- [ ] Create `access_usage` partitioned table + migration
-- [ ] Create `licensing_reports` table + migration
+### 3.1 Competitive Intelligence
+- [ ] Category + competitor tracking setup
+- [ ] Periodic AI platform querying (ChatGPT, Perplexity, Google AI)
+- [ ] Brand mention detection and ranking
+- [ ] Competitor trend tracking
+- [ ] Competitive report API endpoints
+- [ ] Dashboard: competitive positioning page
+- [ ] Dashboard: trend alerts
 
-### 3.2 Metered Access (apps/api — AccessModule)
-- [ ] Access key CRUD for AI consumers
-- [ ] API key authentication for AI agents
-- [ ] Request metering (count pages accessed per key)
-- [ ] Usage aggregation (daily/monthly)
-- [ ] Balance checking and enforcement
-- [ ] Usage reporting endpoints
+### 3.2 AI-Powered Optimization
+- [ ] Product description rewrite suggestions (LLM-powered)
+- [ ] Auto-generate missing JSON-LD structured data
+- [ ] Schema validation and auto-fix
+- [ ] Optimization impact estimation
+- [ ] A/B insights from aggregate data
+- [ ] Dashboard: optimization suggestions page
+- [ ] Dashboard: auto-fix actions with preview
 
-### 3.3 Licensing Reports
-- [ ] Report generation service
-- [ ] Per-agent scraping breakdown
-- [ ] Content value estimation algorithm
-- [ ] PDF export
-- [ ] Scheduled monthly report generation
+### 3.3 Advanced Analytics
+- [ ] Agent behavior pattern analysis
+- [ ] Category-level benchmarks (cross-store aggregates)
+- [ ] Agent algorithm change detection
+- [ ] Predictive analytics (which products agents will favor)
+- [ ] Custom date range and segment filters
 
-### 3.4 Billing — Revenue Share
-- [ ] Stripe Connect for publisher payouts
-- [ ] Monthly invoice generation for AI consumers
-- [ ] Revenue split calculation (80/20)
-- [ ] Payout dashboard for publishers
+### 3.4 Billing & Monetization
+- [ ] Stripe integration for Growth + Pro plans
+- [ ] Shopify billing API integration
+- [ ] Usage tracking per plan limits
+- [ ] Upgrade prompts in dashboard
+- [ ] Annual discount handling
 
-### 3.5 Dashboard — Monetize Features
-- [ ] Access keys management page
-- [ ] Usage analytics dashboard
-- [ ] Revenue/payout overview
-- [ ] Licensing report viewer + export
-- [ ] Metered access setup wizard
+---
 
-### 3.6 Compliance & Audit
-- [ ] EU AI Act compliance report template
-- [ ] Copyright audit trail export
-- [ ] DMCA takedown request helper
-- [ ] Data retention policy enforcement per plan
+## Phase 4: Scale (Month 11-14)
+
+### 4.1 Platform Expansion
+- [ ] BigCommerce integration
+- [ ] Magento integration
+- [ ] Next.js / Vercel middleware package
+- [ ] Cloudflare Workers middleware
+- [ ] Generic REST API for custom stores
+- [ ] NPM package: @agentpulse/tracker
+
+### 4.2 Agency & Enterprise
+- [ ] Multi-store management dashboard
+- [ ] White-label report generation
+- [ ] Team seats with role-based access
+- [ ] Custom branding options
+- [ ] Enterprise SSO (SAML)
+- [ ] Dedicated account management
+
+### 4.3 Advanced Attribution
+- [ ] Cross-device agent journey tracking
+- [ ] Agent-assisted attribution (agent discovered, human purchased)
+- [ ] Incrementality measurement
+- [ ] Attribution model comparison tool
+- [ ] Export to ad platforms (Meta, Google Ads)
 
 ---
 
 ## Backlog (Future)
 
-- [ ] Content Access Marketplace (directory for AI companies)
-- [ ] Community rule templates (shared presets)
-- [ ] Team collaboration (multi-user per account)
-- [ ] SSO / SAML for Enterprise
-- [ ] Custom event tracking SDK
-- [ ] Mobile SDK (iOS/Android)
-- [ ] Historical data import
-- [ ] White-label option
-- [ ] Public status page
-- [ ] GraphQL API option
-- [ ] Webhook integrations (Zapier, Make)
+- [ ] A/B testing framework for agent optimization
+- [ ] Real-time agent activity feed
 - [ ] Slack / Discord bot integration
+- [ ] Zapier / Make webhook integrations
+- [ ] GraphQL API option
+- [ ] Public API for third-party integrations
+- [ ] Mobile app for store owners
+- [ ] AI agent chatbot for store analytics Q&A
+- [ ] Content marketplace features (if market demands)
+- [ ] Agent commerce benchmarks report (annual publication)
