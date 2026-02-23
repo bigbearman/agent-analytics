@@ -59,10 +59,8 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
-      - name: Run Prisma migrations
-        run: railway run --service api -- npx prisma@5 migrate deploy --schema=apps/api/prisma/schema.prisma
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      # Prisma migrations: chạy manual từ local với public DATABASE_URL
+      # DATABASE_URL="postgresql://...@ballast.proxy.rlwy.net:48867/railway" npx prisma migrate deploy --schema=apps/api/prisma/schema.prisma
 
   deploy-dashboard:
     name: Deploy Dashboard (Vercel)
