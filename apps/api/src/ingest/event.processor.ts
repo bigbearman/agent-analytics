@@ -37,14 +37,14 @@ export class EventProcessor extends WorkerHost {
   async process(job: Job<ProcessEventPayload>): Promise<void> {
     const data = job.data;
 
-    // 1. Validate site exists & check plan limits
+    // 1. Validate site exists & check plan limits (siteId from client = apiKey)
     const site = await this.prisma.site.findUnique({
-      where: { id: data.siteId },
+      where: { apiKey: data.siteId },
       select: { id: true, plan: true },
     });
 
     if (!site) {
-      this.logger.warn(`Site not found: ${data.siteId}`);
+      this.logger.warn(`Site not found for apiKey: ${data.siteId}`);
       return;
     }
 
@@ -56,7 +56,7 @@ export class EventProcessor extends WorkerHost {
     }
 
     // 3. Deduplicate (Redis SET với TTL 1s)
-    const dedupeKey = `dedup:${data.siteId}:${data.url}:${data.timestamp}`;
+    const dedupeKey = `dedup:${site.id}:${data.url}:${data.timestamp}`;
     const isNew = await this.redis.set(dedupeKey, '1', 'EX', 1, 'NX');
     if (!isNew) {
       return;
@@ -65,7 +65,7 @@ export class EventProcessor extends WorkerHost {
     // 4. Insert event vào PostgreSQL
     await this.prisma.event.create({
       data: {
-        siteId: data.siteId,
+        siteId: site.id,
         url: data.url,
         action: data.action,
         isAgent: data.serverAgent.isAgent,
@@ -77,12 +77,12 @@ export class EventProcessor extends WorkerHost {
     });
 
     // 5. Increment monthly usage
-    await this.incrementMonthlyUsage(data.siteId);
+    await this.incrementMonthlyUsage(site.id);
 
     // 6. Invalidate analytics cache cho site này
-    await this.invalidateCache(data.siteId);
+    await this.invalidateCache(site.id);
 
-    this.logger.debug(`Event processed for site ${data.siteId}`);
+    this.logger.debug(`Event processed for site ${site.id}`);
   }
 
   private async checkMonthlyLimit(siteId: string, plan: PlanType): Promise<boolean> {
