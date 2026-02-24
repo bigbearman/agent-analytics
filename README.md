@@ -95,16 +95,16 @@ packages/
 
 | Layer | Method | Confidence | Description |
 |-------|--------|------------|-------------|
-| 1 | Server UA match | 95 | Match User-Agent against 16 known AI bots |
+| 1 | Server UA match | 95 | Match User-Agent against 18 known AI bots |
 | 2 | Behavioral signals | 60 | Mouse movement, scroll, focus/blur detection |
 | 3 | Request patterns | 40 | Missing Referer, unusual Accept headers |
 
 **Combined scoring:** `max(layers) + 5 * (extra_layers - 1)`
 **Threshold:** `is_agent = true` when confidence >= 50
 
-### Known AI Agents (16)
+### Known AI Agents (18)
 
-**Training bots:** GPTBot, ClaudeBot, Google-Extended, ByteSpider, Meta-ExternalAgent, Amazonbot, Applebot
+**Training bots:** GPTBot, ClaudeBot, Google-Extended, ByteSpider, Meta-ExternalAgent, FacebookBot, Amazonbot, Applebot
 
 **Search bots:** OAI-SearchBot, PerplexityBot, YouBot, DuckAssistant, GoogleVertexBot, GeminiBot, Gemini-Deep-Research
 
@@ -179,9 +179,9 @@ npm install @agent-analytics/server-sdk
 
 **Express:**
 ```typescript
-import { agentAnalytics } from '@agent-analytics/server-sdk';
+import { agentPulse } from '@agent-analytics/server-sdk';
 
-app.use(agentAnalytics({
+app.use(agentPulse({
   siteId: 'YOUR_SITE_API_KEY',
   endpoint: 'https://api-production-feb6.up.railway.app',
 }));
@@ -189,9 +189,9 @@ app.use(agentAnalytics({
 
 **Fastify:**
 ```typescript
-import { agentAnalyticsPlugin } from '@agent-analytics/server-sdk/fastify';
+import { agentPulsePlugin } from '@agent-analytics/server-sdk/fastify';
 
-fastify.register(agentAnalyticsPlugin, {
+fastify.register(agentPulsePlugin, {
   siteId: 'YOUR_SITE_API_KEY',
   endpoint: 'https://api-production-feb6.up.railway.app',
 });
@@ -200,9 +200,9 @@ fastify.register(agentAnalyticsPlugin, {
 **Next.js:**
 ```typescript
 // middleware.ts
-import { agentAnalyticsMiddleware } from '@agent-analytics/server-sdk/next';
+import { createMiddleware } from '@agent-analytics/server-sdk/next';
 
-export default agentAnalyticsMiddleware({
+export default createMiddleware({
   siteId: 'YOUR_SITE_API_KEY',
   endpoint: 'https://api-production-feb6.up.railway.app',
 });
@@ -264,9 +264,9 @@ Always returns `202 { ok: true }`. Never leaks errors to client.
 GET /analytics/agents              Agent breakdown
 GET /analytics/pages               Page statistics
 GET /analytics/timeline            Time series data
-GET /analytics/pages/ai-interest   Page-level AI crawl breakdown (coming)
-GET /analytics/referrals           AI referral traffic (coming)
-GET /analytics/content-score       Content AI Score (coming)
+GET /analytics/pages/ai-interest   Page-level AI crawl breakdown
+GET /analytics/referrals           AI referral traffic
+GET /analytics/content-score       Content AI Score (Phase 2)
 ```
 
 ## Pricing

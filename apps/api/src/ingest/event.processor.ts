@@ -18,6 +18,9 @@ interface ProcessEventPayload {
     agentName: string;
     confidence: number;
   };
+  agentType?: string | null;
+  referrerDomain?: string | null;
+  referrerType?: string | null;
   requestContext: {
     ip?: string;
     userAgent: string;
@@ -71,8 +74,11 @@ export class EventProcessor extends WorkerHost {
         action: data.action,
         isAgent: data.serverAgent.isAgent,
         agentName: data.serverAgent.isAgent ? data.serverAgent.agentName : null,
+        agentType: data.agentType ?? null,
         confidence: data.serverAgent.confidence,
         source: data.source ?? null,
+        referrerDomain: data.referrerDomain ?? null,
+        referrerType: data.referrerType ?? null,
         timestamp: new Date(data.timestamp),
         meta: (data.meta as Prisma.InputJsonValue) ?? undefined,
       },

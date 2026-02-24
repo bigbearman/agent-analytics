@@ -21,7 +21,7 @@
 
 | Layer | Technology | Version | Notes |
 |-------|-----------|---------|-------|
-| Backend | NestJS + Fastify | v10+ | High throughput ingest |
+| Backend | NestJS + Fastify | v11+ | High throughput ingest |
 | Queue | BullMQ + Redis | v5+ / v7+ | Async event processing |
 | Database | PostgreSQL | v16+ | Partitioned by timestamp |
 | Cache | Redis | v7+ | Analytics cache, 5min TTL |
@@ -49,7 +49,7 @@ apps/
 │       └── redis/               Cache service
 ├── dashboard/                   React + Vite frontend
 │   └── src/
-│       ├── pages/               overview, agents, pages-stats, timeline, sites
+│       ├── pages/               overview, agents, pages-stats, content-analysis, referrals, timeline, sites
 │       ├── components/          layout, ui (stat-card, range-selector)
 │       └── hooks/               use-auth, use-analytics, use-sites
 └── tracker/                     JS embed snippet
@@ -61,11 +61,11 @@ apps/
 packages/
 ├── types/                       @agent-analytics/types
 │   └── src/
-│       ├── agents.ts            16 known agents + confidence thresholds
+│       ├── agents.ts            18 known agents + type classification + AI referral domains
 │       ├── event.ts             AgentEvent, EnrichedEvent
 │       ├── analytics.ts         AnalyticsOverview, PageStats, TimelinePoint
 │       └── site.ts              PlanType, PLAN_LIMITS
-└── server-sdk/                  Server-side middleware (UNCOMMITTED)
+└── server-sdk/                  Server-side middleware (Express, Fastify, Next.js)
     └── src/
         ├── adapters/            express.ts, fastify.ts, next.ts
         └── core/                detector, filter, buffer, transport, config
@@ -91,25 +91,14 @@ packages/
 users              (id, email, password, name, created_at)
 sites              (id, user_id, domain, api_key, plan, created_at)
 events             (id, site_id, url, action, is_agent, agent_name,
-                    confidence, source, timestamp, meta)
+                    agent_type, confidence, source, referrer_domain,
+                    referrer_type, timestamp, meta)
 daily_aggregates   (id, site_id, date, total_events, agent_events,
                     unique_agents, top_agents)
 monthly_usage      (id, site_id, month, event_count)
-```
-
-### Needed Schema Changes
-
-```sql
--- New columns on events
-agent_type         VARCHAR(20)   -- training | search | on_demand | unknown
-referrer_domain    VARCHAR(255)  -- parsed referrer hostname
-referrer_type      VARCHAR(20)   -- ai_referral | organic | direct | other
-
--- New tables
 page_ai_scores     (id, site_id, url, date, ai_score, crawl_score,
                     citation_score, readiness_score, crawl_count,
                     referral_count, agent_count, top_agent)
-
 ai_referrals       (id, site_id, referrer_domain, landing_url,
                     timestamp, meta)
 ```
@@ -131,25 +120,22 @@ ai_referrals       (id, site_id, referrer_domain, landing_url,
 | 3-layer agent detection | UA (95), behavioral (60), pattern (40) |
 | JWT authentication | Register, login, guards |
 | Site management | CRUD, API keys, plan limits |
-| Analytics endpoints | overview, agents, pages, timeline |
+| Agent type classification | training / search / on_demand in event processor |
+| AI referral detection | Tracker + server-side referrer parsing |
+| Analytics endpoints | overview, agents, pages, timeline, pages/ai-interest, referrals |
 | Redis cache | 5min TTL, invalidation on write |
-| React dashboard | Overview, agents, pages-stats, timeline, sites |
-| JS tracker | IIFE bundle, auto-init, SPA support |
-| Server SDK | Express, Fastify, Next.js (UNCOMMITTED) |
+| React dashboard | Overview, agents, pages-stats, content-analysis, referrals, timeline, sites |
+| JS tracker | IIFE bundle, auto-init, SPA support, AI referral detection |
+| Server SDK | Express, Fastify, Next.js |
 | Production deploy | Railway + Vercel + Cloudflare R2 |
 
 ### Needs Building
 
 | Feature | Priority | Effort | Phase |
 |---------|----------|--------|-------|
-| Agent type classification | P0 | 1 day | 1 |
-| AI referral detection in tracker | P0 | 2 days | 1 |
-| Page-level AI analysis endpoint | P0 | 2 days | 1 |
-| AI referral analytics endpoint | P0 | 2 days | 1 |
-| Dashboard: Content Analysis page | P0 | 3 days | 1 |
-| Dashboard: AI Referrals page | P0 | 2 days | 1 |
 | Landing page (agentpulse.com) | P0 | 3 days | 1 |
 | Stripe integration | P1 | 3 days | 1 |
+| Agent type filter on Timeline | P1 | 1 day | 1 |
 | Content AI Score engine | P1 | 5 days | 2 |
 | Recommendations engine | P1 | 3 days | 2 |
 | Weekly email digest | P1 | 2 days | 2 |
@@ -178,19 +164,20 @@ ai_referrals       (id, site_id, referrer_domain, landing_url,
 
 ```
 Sprint 1-2 (Week 1-2): Backend
-├── [ ] Commit server-sdk package
-├── [ ] Migration: add agent_type, referrer_domain, referrer_type to events
-├── [ ] Migration: create page_ai_scores, ai_referrals tables
-├── [ ] Implement agent type classification in event processor
-├── [ ] Implement AI referral detection in tracker
-├── [ ] New endpoint: GET /analytics/pages/ai-interest
-├── [ ] New endpoint: GET /analytics/referrals
-└── [ ] Align PLAN_LIMITS code with pricing
+├── [x] Commit server-sdk package
+├── [x] Migration: add agent_type, referrer_domain, referrer_type to events
+├── [x] Migration: create page_ai_scores, ai_referrals tables
+├── [x] Implement agent type classification in event processor
+├── [x] Implement AI referral detection in tracker
+├── [x] New endpoint: GET /analytics/pages/ai-interest
+├── [x] New endpoint: GET /analytics/referrals
+└── [x] Align PLAN_LIMITS code with pricing
 
 Sprint 3-4 (Week 3-4): Frontend + Launch Prep
-├── [ ] Dashboard: Content Analysis page
-├── [ ] Dashboard: AI Referrals page
-├── [ ] Enhance Overview with AI ratio + agent type badges
+├── [x] Dashboard: Content Analysis page
+├── [x] Dashboard: AI Referrals page
+├── [x] Enhance Overview with AI ratio + agent type badges
+├── [ ] Add agent type filter to Timeline
 ├── [ ] Landing page (agentpulse.com)
 ├── [ ] Stripe integration (Starter $19 + Pro $49)
 ├── [ ] Onboarding flow for new users

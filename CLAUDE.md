@@ -40,7 +40,7 @@ Key differentiators:
 ## Tech Stack & Versions
 
 ```
-NestJS        v10+     Fastify adapter (NOT Express)
+NestJS        v11+     Fastify adapter (NOT Express)
 BullMQ        v5+      Queue processing
 PostgreSQL    v16+     Partitioned tables
 Redis         v7+      Cache + Queue broker
@@ -96,7 +96,7 @@ docs/                  Specs and business docs
 - Migration: `npx prisma migrate dev --name <name>` — use descriptive names
 - Raw SQL only when needed for performance (analytics aggregation) — use `prisma.$queryRaw`
 - Never query directly in Controller
-- Always use `CONCURRENTLY` for index creation (PostgreSQL will lock table otherwise)
+- Prisma wraps migrations in a transaction — do NOT use `CONCURRENTLY` for index creation (it fails inside transactions)
 
 ### Queue Conventions (BullMQ)
 ```typescript
@@ -128,8 +128,7 @@ Pro         $49/mo     10     500,000    2,000     90 days
 Business    $149/mo    ∞      5,000,000  10,000    1 year
 ```
 
-Note: Code currently has `free/starter/pro/enterprise` tiers with different limits.
-**TODO:** Align `packages/types/src/site.ts` PLAN_LIMITS with pricing above.
+Code in `packages/types/src/site.ts` is aligned with pricing above (`free/starter/pro/business`).
 
 ### Feature Gating by Plan
 
@@ -196,17 +195,19 @@ const AI_REFERRAL_DOMAINS = {
 ## Known Agents List
 
 ```typescript
-// packages/types/src/agents.ts — 16 known agents
+// packages/types/src/agents.ts — 18 known agents
 export const KNOWN_AGENTS = {
   GPTBot: /GPTBot/i,
   'ChatGPT-User': /ChatGPT-User/i,
   'OAI-SearchBot': /OAI-SearchBot/i,
   ClaudeBot: /ClaudeBot|Claude-Web/i,
+  'Claude-User': /Claude-User/i,
   'Google-Extended': /Google-Extended/i,
   'Gemini-Deep-Research': /Gemini-Deep-Research/i,
   GoogleVertexBot: /Google-CloudVertexBot/i,
   GeminiBot: /GeminiiOS|Gemini\//i,
   PerplexityBot: /PerplexityBot/i,
+  'Perplexity-User': /Perplexity-User/i,
   ByteSpider: /Bytespider/i,
   FacebookBot: /FacebookBot/i,
   'Meta-ExternalAgent': /Meta-ExternalAgent/i,
@@ -263,14 +264,18 @@ GET /analytics/agents      Agent breakdown
 GET /analytics/timeline    Time series data
 ```
 
-### New endpoints (to build)
+### Built endpoints
 ```
 GET /analytics/pages/ai-interest    Page-level AI crawl breakdown
 GET /analytics/referrals            AI referral traffic sources
+```
+
+### Planned endpoints (Phase 2)
+```
 GET /analytics/referrals/pages      Landing pages from AI referrals
-GET /analytics/content-score        Content AI Score per page (Phase 2)
-GET /analytics/recommendations      Optimization recommendations (Phase 2)
-POST /scan/readiness                On-demand page readiness scan (Phase 2)
+GET /analytics/content-score        Content AI Score per page
+GET /analytics/recommendations      Optimization recommendations
+POST /scan/readiness                On-demand page readiness scan
 ```
 
 ---
@@ -334,7 +339,7 @@ Tracker:   CF R2    → https://pub-734a26198d39470eb9a7702060cae3a1.r2.dev
 - Do NOT block ingest response — everything must go through queue
 - Do NOT store PII of end users — only aggregate data
 - Do NOT use `any` in TypeScript
-- Do NOT create index migrations without `CONCURRENTLY`
+- Do NOT use `CREATE INDEX CONCURRENTLY` in Prisma migrations (Prisma wraps in transaction)
 - Do NOT hardcode agent list — import from `@agent-analytics/types`
 - Do NOT build robots.txt management — Known Agents does this, not our focus
 - Do NOT build blocking/control features — Cloudflare does this free, not our focus

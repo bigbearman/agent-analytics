@@ -1,4 +1,5 @@
 import type { AgentEvent, AgentInfo } from '@agent-analytics/types';
+import { AI_REFERRAL_DOMAINS } from '@agent-analytics/types';
 
 const COLLECT_ENDPOINT = '/collect';
 
@@ -32,6 +33,27 @@ export function sendEvent(
 }
 
 /**
+ * Detect AI referral from document.referrer
+ */
+function detectAiReferral(): { aiReferral: boolean; aiReferralSource: string } | null {
+  try {
+    const referrer = document.referrer;
+    if (!referrer) return null;
+
+    const url = new URL(referrer);
+    const domain = url.hostname.replace(/^www\./, '');
+    const source = AI_REFERRAL_DOMAINS[domain];
+
+    if (source) {
+      return { aiReferral: true, aiReferralSource: source };
+    }
+  } catch {
+    // Invalid referrer URL — ignore
+  }
+  return null;
+}
+
+/**
  * Create event payload
  */
 export function createEvent(
@@ -40,12 +62,16 @@ export function createEvent(
   agent: AgentInfo,
   meta?: Record<string, unknown>,
 ): AgentEvent {
+  const referralInfo = detectAiReferral();
+  const mergedMeta = referralInfo ? { ...meta, ...referralInfo } : meta;
+
   return {
     siteId,
     url: window.location.href,
     action,
     agent,
     timestamp: Date.now(),
-    meta,
+    source: 'tracker',
+    meta: mergedMeta,
   };
 }

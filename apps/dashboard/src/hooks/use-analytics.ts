@@ -6,6 +6,8 @@ import type {
   AgentBreakdown,
   PageStats,
   TimelinePoint,
+  PageAiInterest,
+  AiReferralOverview,
   ApiResponse,
 } from '@agent-analytics/types';
 
@@ -48,6 +50,28 @@ export function useTimeline(siteId: string, range: AnalyticsRange) {
     queryFn: () =>
       api.get<ApiResponse<TimelinePoint[]>>(
         `/analytics/timeline?siteId=${siteId}&range=${range}`,
+      ),
+    enabled: !!siteId,
+  });
+}
+
+export function usePagesAiInterest(siteId: string, range: AnalyticsRange) {
+  return useQuery({
+    queryKey: ['pages-ai-interest', siteId, range],
+    queryFn: () =>
+      api.get<{ data: PageAiInterest[]; meta: { total: number; limit: number } }>(
+        `/analytics/pages/ai-interest?siteId=${siteId}&range=${range}`,
+      ),
+    enabled: !!siteId,
+  });
+}
+
+export function useReferrals(siteId: string, range: AnalyticsRange) {
+  return useQuery({
+    queryKey: ['referrals', siteId, range],
+    queryFn: () =>
+      api.get<ApiResponse<AiReferralOverview>>(
+        `/analytics/referrals?siteId=${siteId}&range=${range}`,
       ),
     enabled: !!siteId,
   });

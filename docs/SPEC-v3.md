@@ -382,7 +382,7 @@ apps/
 │       └── health/         Health check
 ├── dashboard/              React + Vite frontend
 │   └── src/
-│       ├── pages/          overview, agents, pages-stats, timeline, sites
+│       ├── pages/          overview, agents, pages-stats, content-analysis, referrals, timeline, sites
 │       ├── components/     layout, ui (stat-card, range-selector)
 │       └── hooks/          use-auth, use-analytics, use-sites
 └── tracker/                Vanilla TS embed snippet (IIFE bundle)
@@ -394,7 +394,7 @@ apps/
 packages/
 ├── types/                  @agent-analytics/types
 │   └── src/
-│       ├── agents.ts       16 known agents + confidence thresholds
+│       ├── agents.ts       18 known agents + type classification + AI referral domains
 │       ├── event.ts        AgentEvent, EnrichedEvent, EventAction
 │       ├── analytics.ts    AnalyticsOverview, PageStats, TimelinePoint
 │       └── site.ts         PlanType, PLAN_LIMITS
@@ -515,22 +515,22 @@ POST /scan/readiness               On-demand page readiness scan
 ### Sprint 1-2 (Week 1-2): Foundation
 
 ```
-[ ] Commit server-sdk package
-[ ] Migration: add agent_type, referrer_domain, referrer_type to events
-[ ] Migration: create page_ai_scores, ai_referrals tables
-[ ] Implement agent type classification in event processor
-[ ] Implement AI referral detection in tracker
-[ ] New endpoint: GET /analytics/pages/ai-interest
-[ ] New endpoint: GET /analytics/referrals
-[ ] Align PLAN_LIMITS code with pricing table above
+[x] Commit server-sdk package
+[x] Migration: add agent_type, referrer_domain, referrer_type to events
+[x] Migration: create page_ai_scores, ai_referrals tables
+[x] Implement agent type classification in event processor
+[x] Implement AI referral detection in tracker
+[x] New endpoint: GET /analytics/pages/ai-interest
+[x] New endpoint: GET /analytics/referrals
+[x] Align PLAN_LIMITS code with pricing table above
 ```
 
 ### Sprint 3-4 (Week 3-4): Dashboard + Launch Prep
 
 ```
-[ ] Dashboard: Content Analysis page (page-level AI interest)
-[ ] Dashboard: AI Referrals page
-[ ] Enhance Overview with AI ratio, agent type badges
+[x] Dashboard: Content Analysis page (page-level AI interest)
+[x] Dashboard: AI Referrals page
+[x] Enhance Overview with AI ratio, agent type badges
 [ ] Add agent type filter to Timeline
 [ ] Landing page (agentpulse.com)
 [ ] Stripe integration (Starter + Pro)

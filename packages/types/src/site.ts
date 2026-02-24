@@ -1,4 +1,4 @@
-export type PlanType = 'free' | 'starter' | 'pro' | 'enterprise';
+export type PlanType = 'free' | 'starter' | 'pro' | 'business';
 
 export interface Site {
   id: string;
@@ -14,25 +14,25 @@ export const PLAN_LIMITS = {
     eventsPerMonth: 10_000,
     ratePerMinute: 100,
     sites: 1,
-    retentionDays: 30,
+    retentionDays: 7,
   },
   starter: {
     eventsPerMonth: 100_000,
     ratePerMinute: 500,
-    sites: 5,
-    retentionDays: 90,
+    sites: 3,
+    retentionDays: 30,
   },
   pro: {
-    eventsPerMonth: 1_000_000,
+    eventsPerMonth: 500_000,
     ratePerMinute: 2_000,
+    sites: 10,
+    retentionDays: 90,
+  },
+  business: {
+    eventsPerMonth: 5_000_000,
+    ratePerMinute: 10_000,
     sites: Infinity,
     retentionDays: 365,
-  },
-  enterprise: {
-    eventsPerMonth: Infinity,
-    ratePerMinute: Infinity,
-    sites: Infinity,
-    retentionDays: Infinity,
   },
 } as const satisfies Record<PlanType, PlanLimit>;
 

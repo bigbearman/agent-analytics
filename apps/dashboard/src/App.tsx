@@ -6,6 +6,8 @@ import { RegisterPage } from './pages/register';
 import { OverviewPage } from './pages/overview';
 import { AgentsPage } from './pages/agents';
 import { PagesPage } from './pages/pages-stats';
+import { ContentAnalysisPage } from './pages/content-analysis';
+import { ReferralsPage } from './pages/referrals';
 import { TimelinePage } from './pages/timeline';
 import { SitesPage } from './pages/sites';
 
@@ -28,6 +30,8 @@ export function App() {
         <Route path="/" element={<OverviewPage />} />
         <Route path="/agents" element={<AgentsPage />} />
         <Route path="/pages" element={<PagesPage />} />
+        <Route path="/content-analysis" element={<ContentAnalysisPage />} />
+        <Route path="/referrals" element={<ReferralsPage />} />
         <Route path="/timeline" element={<TimelinePage />} />
         <Route path="/sites" element={<SitesPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

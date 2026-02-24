@@ -36,23 +36,28 @@ model Site {
 }
 
 model Event {
-  id         BigInt   @id @default(autoincrement())
-  siteId     String   @map("site_id")
-  sessionId  String?  @map("session_id") @db.VarChar(64)
-  url        String
-  action     String   @db.VarChar(50)
-  isAgent    Boolean  @default(false) @map("is_agent")
-  agentName  String?  @map("agent_name") @db.VarChar(100)
-  confidence Int      @default(0) @db.SmallInt
-  country    String?  @db.VarChar(2)
-  source     String?  @db.VarChar(10)
-  timestamp  DateTime @default(now())
-  meta       Json?
-  site       Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  id             BigInt   @id @default(autoincrement())
+  siteId         String   @map("site_id")
+  sessionId      String?  @map("session_id") @db.VarChar(64)
+  url            String
+  action         String   @db.VarChar(50)
+  isAgent        Boolean  @default(false) @map("is_agent")
+  agentName      String?  @map("agent_name") @db.VarChar(100)
+  agentType      String?  @map("agent_type") @db.VarChar(20)
+  confidence     Int      @default(0) @db.SmallInt
+  country        String?  @db.VarChar(2)
+  source         String?  @db.VarChar(10)
+  referrerDomain String?  @map("referrer_domain") @db.VarChar(255)
+  referrerType   String?  @map("referrer_type") @db.VarChar(20)
+  timestamp      DateTime @default(now())
+  meta           Json?
+  site           Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@index([siteId, isAgent, timestamp(sort: Desc)], name: "idx_events_site_agent")
   @@index([agentName, timestamp(sort: Desc)], name: "idx_events_agent_name")
   @@index([siteId, timestamp(sort: Desc)], name: "idx_events_site_timestamp")
+  @@index([siteId, agentType, timestamp(sort: Desc)], name: "idx_events_agent_type")
+  @@index([siteId, referrerType, timestamp(sort: Desc)], name: "idx_events_referrer_type")
   @@map("events")
 }
 
@@ -79,4 +84,36 @@ model MonthlyUsage {
 
   @@unique([siteId, month])
   @@map("monthly_usage")
+}
+
+model PageAiScore {
+  id             BigInt   @id @default(autoincrement())
+  siteId         String   @map("site_id")
+  url            String
+  date           DateTime @db.Date
+  aiScore        Int      @default(0) @map("ai_score") @db.SmallInt
+  crawlScore     Int      @default(0) @map("crawl_score") @db.SmallInt
+  citationScore  Int      @default(0) @map("citation_score") @db.SmallInt
+  readinessScore Int      @default(0) @map("readiness_score") @db.SmallInt
+  crawlCount     Int      @default(0) @map("crawl_count")
+  referralCount  Int      @default(0) @map("referral_count")
+  agentCount     Int      @default(0) @map("agent_count")
+  topAgent       String?  @map("top_agent") @db.VarChar(100)
+
+  @@unique([siteId, url, date])
+  @@index([siteId, date(sort: Desc)])
+  @@map("page_ai_scores")
+}
+
+model AiReferral {
+  id             BigInt   @id @default(autoincrement())
+  siteId         String   @map("site_id")
+  referrerDomain String   @map("referrer_domain") @db.VarChar(255)
+  landingUrl     String   @map("landing_url")
+  timestamp      DateTime @default(now())
+  meta           Json?
+
+  @@index([siteId, referrerDomain, timestamp(sort: Desc)])
+  @@index([siteId, timestamp(sort: Desc)])
+  @@map("ai_referrals")
 }

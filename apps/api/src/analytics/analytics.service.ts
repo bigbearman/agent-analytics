@@ -7,7 +7,11 @@ import type {
   AgentBreakdown,
   PageStats,
   TimelinePoint,
+  PageAiInterest,
+  AiReferralOverview,
+  AiReferralStats,
 } from '@agent-analytics/types';
+import { AI_REFERRAL_DOMAINS } from '@agent-analytics/types';
 
 const RANGE_TO_INTERVAL: Record<AnalyticsRange, string> = {
   '1d': '1 day',
@@ -186,6 +190,223 @@ export class AnalyticsService {
         agents: Number(row.agents),
         humans: Number(row.humans),
       }));
+    });
+  }
+
+  async getPagesAiInterest(
+    siteId: string,
+    range: AnalyticsRange,
+    limit: number,
+  ): Promise<{ pages: PageAiInterest[]; total: number }> {
+    const cacheKey = `pages-ai:${siteId}:${range}:${limit}`;
+
+    return this.redis.wrap(cacheKey, CACHE_TTL, async () => {
+      const interval = RANGE_TO_INTERVAL[range];
+
+      // Page-level AI visits with agent type breakdown
+      const rows = await this.prisma.$queryRaw<
+        Array<{
+          url: string;
+          ai_visits: bigint;
+          unique_agents: bigint;
+          training: bigint;
+          search: bigint;
+          on_demand: bigint;
+        }>
+      >`
+        SELECT
+          url,
+          COUNT(*) as ai_visits,
+          COUNT(DISTINCT agent_name) as unique_agents,
+          COUNT(*) FILTER (WHERE agent_type = 'training') as training,
+          COUNT(*) FILTER (WHERE agent_type = 'search') as search,
+          COUNT(*) FILTER (WHERE agent_type = 'on_demand') as on_demand
+        FROM events
+        WHERE site_id = ${siteId}
+          AND is_agent = true
+          AND timestamp > NOW() - ${interval}::INTERVAL
+        GROUP BY url
+        ORDER BY ai_visits DESC
+        LIMIT ${limit}
+      `;
+
+      // Previous period for trend calculation
+      const prevRows = await this.prisma.$queryRaw<
+        Array<{ url: string; ai_visits: bigint }>
+      >`
+        SELECT url, COUNT(*) as ai_visits
+        FROM events
+        WHERE site_id = ${siteId}
+          AND is_agent = true
+          AND timestamp > NOW() - (${interval}::INTERVAL * 2)
+          AND timestamp <= NOW() - ${interval}::INTERVAL
+        GROUP BY url
+      `;
+
+      const prevMap = new Map(
+        prevRows.map((r) => [r.url, Number(r.ai_visits)]),
+      );
+
+      // Top agents per page (batch query)
+      const urls = rows.map((r) => r.url);
+      const topAgentsRows = urls.length > 0
+        ? await this.prisma.$queryRaw<
+            Array<{ url: string; agent_name: string; count: bigint }>
+          >`
+            SELECT url, agent_name, COUNT(*) as count
+            FROM events
+            WHERE site_id = ${siteId}
+              AND is_agent = true
+              AND timestamp > NOW() - ${interval}::INTERVAL
+              AND url = ANY(${urls})
+            GROUP BY url, agent_name
+            ORDER BY url, count DESC
+          `
+        : [];
+
+      // Group top agents by URL (keep top 5 per page)
+      const agentsByUrl = new Map<string, AgentBreakdown[]>();
+      for (const row of topAgentsRows) {
+        const list = agentsByUrl.get(row.url) ?? [];
+        if (list.length < 5) {
+          list.push({
+            name: row.agent_name,
+            count: Number(row.count),
+            ratio: 0, // calculated below
+          });
+          agentsByUrl.set(row.url, list);
+        }
+      }
+
+      // Total count for pagination meta
+      const [countResult] = await this.prisma.$queryRaw<Array<{ total: bigint }>>`
+        SELECT COUNT(DISTINCT url) as total
+        FROM events
+        WHERE site_id = ${siteId}
+          AND is_agent = true
+          AND timestamp > NOW() - ${interval}::INTERVAL
+      `;
+
+      const pages: PageAiInterest[] = rows.map((row) => {
+        const aiVisits = Number(row.ai_visits);
+        const prev = prevMap.get(row.url) ?? 0;
+        const trend = prev > 0 ? ((aiVisits - prev) / prev) * 100 : (aiVisits > 0 ? 100 : 0);
+
+        const pageAgents = agentsByUrl.get(row.url) ?? [];
+        for (const agent of pageAgents) {
+          agent.ratio = aiVisits > 0 ? (agent.count / aiVisits) * 100 : 0;
+        }
+
+        return {
+          url: row.url,
+          aiVisits,
+          uniqueAgents: Number(row.unique_agents),
+          topAgents: pageAgents,
+          trend: Math.round(trend * 100) / 100,
+          agentTypes: {
+            training: Number(row.training),
+            search: Number(row.search),
+            on_demand: Number(row.on_demand),
+          },
+        };
+      });
+
+      return { pages, total: Number(countResult?.total ?? 0) };
+    });
+  }
+
+  async getReferrals(
+    siteId: string,
+    range: AnalyticsRange,
+  ): Promise<AiReferralOverview> {
+    const cacheKey = `referrals:${siteId}:${range}`;
+
+    return this.redis.wrap(cacheKey, CACHE_TTL, async () => {
+      const interval = RANGE_TO_INTERVAL[range];
+
+      // Total traffic for share calculation
+      const [totalResult] = await this.prisma.$queryRaw<Array<{ total: bigint }>>`
+        SELECT COUNT(*) as total
+        FROM events
+        WHERE site_id = ${siteId}
+          AND timestamp > NOW() - ${interval}::INTERVAL
+      `;
+      const totalTraffic = Number(totalResult?.total ?? 0);
+
+      // AI referral sources
+      const rows = await this.prisma.$queryRaw<
+        Array<{
+          referrer_domain: string;
+          visits: bigint;
+          unique_pages: bigint;
+          top_landing: string;
+        }>
+      >`
+        SELECT
+          referrer_domain,
+          COUNT(*) as visits,
+          COUNT(DISTINCT url) as unique_pages,
+          (
+            SELECT url FROM events e2
+            WHERE e2.site_id = ${siteId}
+              AND e2.referrer_domain = e.referrer_domain
+              AND e2.referrer_type = 'ai_referral'
+              AND e2.timestamp > NOW() - ${interval}::INTERVAL
+            GROUP BY url
+            ORDER BY COUNT(*) DESC
+            LIMIT 1
+          ) as top_landing
+        FROM events e
+        WHERE site_id = ${siteId}
+          AND referrer_type = 'ai_referral'
+          AND referrer_domain IS NOT NULL
+          AND timestamp > NOW() - ${interval}::INTERVAL
+        GROUP BY referrer_domain
+        ORDER BY visits DESC
+      `;
+
+      // Previous period for trends
+      const prevRows = await this.prisma.$queryRaw<
+        Array<{ referrer_domain: string; visits: bigint }>
+      >`
+        SELECT referrer_domain, COUNT(*) as visits
+        FROM events
+        WHERE site_id = ${siteId}
+          AND referrer_type = 'ai_referral'
+          AND referrer_domain IS NOT NULL
+          AND timestamp > NOW() - (${interval}::INTERVAL * 2)
+          AND timestamp <= NOW() - ${interval}::INTERVAL
+        GROUP BY referrer_domain
+      `;
+
+      const prevMap = new Map(
+        prevRows.map((r) => [r.referrer_domain, Number(r.visits)]),
+      );
+
+      const sources: AiReferralStats[] = rows.map((row) => {
+        const visits = Number(row.visits);
+        const prev = prevMap.get(row.referrer_domain) ?? 0;
+        const trend = prev > 0 ? ((visits - prev) / prev) * 100 : (visits > 0 ? 100 : 0);
+
+        return {
+          source: AI_REFERRAL_DOMAINS[row.referrer_domain] ?? row.referrer_domain,
+          referrerDomain: row.referrer_domain,
+          visits,
+          uniquePages: Number(row.unique_pages),
+          topLandingPage: row.top_landing ?? '',
+          trend: Math.round(trend * 100) / 100,
+        };
+      });
+
+      const totalReferrals = sources.reduce((sum, s) => sum + s.visits, 0);
+
+      return {
+        sources,
+        totalReferrals,
+        referralShare: totalTraffic > 0
+          ? Math.round((totalReferrals / totalTraffic) * 10000) / 100
+          : 0,
+      };
     });
   }
 }

@@ -5,6 +5,8 @@ import {
   BarChart3,
   Bot,
   FileText,
+  Search,
+  Share2,
   Clock,
   Globe,
   LogOut,
@@ -17,6 +19,8 @@ const NAV_ITEMS = [
   { path: '/', label: 'Overview', icon: BarChart3 },
   { path: '/agents', label: 'Agents', icon: Bot },
   { path: '/pages', label: 'Pages', icon: FileText },
+  { path: '/content-analysis', label: 'Content Analysis', icon: Search },
+  { path: '/referrals', label: 'AI Referrals', icon: Share2 },
   { path: '/timeline', label: 'Timeline', icon: Clock },
   { path: '/sites', label: 'Sites', icon: Globe },
 ];
