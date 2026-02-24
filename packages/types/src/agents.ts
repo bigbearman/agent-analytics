@@ -1,15 +1,20 @@
 export const KNOWN_AGENTS = {
   GPTBot: /GPTBot/i,
   'ChatGPT-User': /ChatGPT-User/i,
+  'OAI-SearchBot': /OAI-SearchBot/i,
   ClaudeBot: /ClaudeBot|Claude-Web/i,
   'Google-Extended': /Google-Extended/i,
+  'Gemini-Deep-Research': /Gemini-Deep-Research/i,
+  GoogleVertexBot: /Google-CloudVertexBot/i,
+  GeminiBot: /GeminiiOS|Gemini\//i,
   PerplexityBot: /PerplexityBot/i,
   ByteSpider: /Bytespider/i,
   FacebookBot: /FacebookBot/i,
+  'Meta-ExternalAgent': /Meta-ExternalAgent/i,
   Applebot: /Applebot/i,
   Amazonbot: /Amazonbot/i,
   YouBot: /YouBot/i,
-  DuckAssistant: /DuckAssistant/i,
+  DuckAssistant: /DuckAssistant|DuckAssistBot/i,
 } as const;
 
 export type KnownAgentName = keyof typeof KNOWN_AGENTS;
