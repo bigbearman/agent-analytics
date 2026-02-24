@@ -1,62 +1,49 @@
-# AgentPulse — Project Context
+# AgentPulse — Project Context & Roadmap
 
-> Pivoted from "Agent Access Analytics" (generic bot tracking) to "AgentPulse"
-> (AI commerce analytics) based on market research — Feb 2026.
+> **Version:** v2 (aligned with SPEC-v3)
+> **Updated:** 2026-02-24
+> **Previous:** docs/PROJECT-v1.md (e-commerce pivot)
+
+---
 
 ## Overview
 
-**AgentPulse** is the analytics platform for AI agent commerce. E-commerce store owners
-install our Shopify app / WooCommerce plugin to track how AI shopping agents (ChatGPT Shopping,
-Google AI Mode, Perplexity Buy...) discover, evaluate, and purchase from their stores — something
-Google Analytics can't do.
+**AgentPulse** is an AI traffic intelligence platform. Website owners install a JS snippet or server SDK to understand how AI bots interact with their content — which pages AI crawls most, which AI engines cite them, and how to optimize for AI visibility.
 
-**Vision:** Google Analytics for the AI Shopping era.
+**Positioning:** "Google Analytics for AI traffic"
 
-> Product spec: [docs/SPEC-v2.md](docs/SPEC-v2.md)
-> Business model: [docs/BUSINESS-MODEL.md](docs/BUSINESS-MODEL.md)
-> Previous spec (v1 — archived): [docs/SPEC.md](docs/SPEC.md)
+**Target users:** Developers, content sites, SMBs, SEO/marketing agencies
 
-## Problem
-- AI shopping agents (ChatGPT, Google AI Mode, Perplexity) drive growing e-commerce traffic
-- Google Analytics is blind to AI agents — no cookies, no sessions, no JS
-- Merchants get orders from AI agents but have zero visibility into the funnel
-- Attribution models break: no last-click, no UTM, no referrer
-- Can't optimize what you can't measure — agent commerce converts 86% worse than affiliate
-- McKinsey estimates $3-5 trillion in agent-mediated commerce by 2030
+> **Full spec:** [docs/SPEC-v3.md](docs/SPEC-v3.md)
+> **Business model:** [docs/BUSINESS-MODEL-v2.md](docs/BUSINESS-MODEL-v2.md)
 
-## Solution
-- Server-side + client-side tracking for AI shopping agent detection
-- Full agent commerce funnel visualization (discovery → view → cart → purchase)
-- Product readiness scoring (how well can AI agents understand your products)
-- Agent attribution engine (revenue by agent source)
-- Competitive intelligence (monitor how agents see your competitors)
-- AI-powered optimization suggestions
-- Shopify app + WooCommerce plugin + generic middleware
+---
+
+## Why v2? What Changed?
+
+| | PROJECT v1 (e-commerce) | PROJECT v2 (AI traffic intel) |
+|---|---|---|
+| Target | Shopify store owners | Developers, content sites, SMBs |
+| Focus | Agent commerce funnel, product readiness | AI traffic analytics, content intelligence |
+| Revenue | Shopify App $49-$399 | Direct SaaS $19-$149 |
+| Code status | 0% of spec implemented | ~70% built, needs analytics depth |
+| Reason for change | No Shopify expertise, market unvalidated, 0 code | Grounded in existing code + validated market |
 
 ---
 
 ## Tech Stack
 
-### Backend
-- **Framework:** NestJS + Fastify adapter (high throughput ingest)
-- **Queue:** BullMQ + Redis (async event processing)
-- **Database:** PostgreSQL with table partitioning by day
-- **Cache:** Redis (pre-aggregated analytics, TTL 5 minutes)
-- **Auth:** JWT, per-site API keys, multi-tenant
-
-### Frontend
-- **Dashboard:** ReactJS + ViteJS
-- **Charts:** Recharts
-- **Styling:** TailwindCSS
-
-### Tracker
-- Vanilla TypeScript → small ES module bundle
-- Auto detect agent via UA + behavioral signals
-- Fire-and-forget POST, does not block page load
-
-### Monorepo
-- **Tool:** Turborepo
-- **Shared packages:** `@agent-analytics/types` (shared TypeScript types)
+| Layer | Technology | Version | Notes |
+|-------|-----------|---------|-------|
+| Backend | NestJS + Fastify | v10+ | High throughput ingest |
+| Queue | BullMQ + Redis | v5+ / v7+ | Async event processing |
+| Database | PostgreSQL | v16+ | Partitioned by timestamp |
+| Cache | Redis | v7+ | Analytics cache, 5min TTL |
+| Frontend | React + Vite | v18+ / v5+ | TailwindCSS, Recharts |
+| Tracker | Vanilla TypeScript | - | IIFE bundle, sendBeacon |
+| Server SDK | TypeScript | - | Express, Fastify, Next.js |
+| ORM | Prisma | v5+ | Type-safe queries |
+| Monorepo | Turborepo | v2+ | pnpm workspaces |
 
 ---
 
@@ -65,390 +52,350 @@ Google Analytics can't do.
 ```
 agent-analytics/
 ├── apps/
-│   ├── api/                        # NestJS backend
+│   ├── api/                         # NestJS backend
 │   │   └── src/
-│   │       ├── ingest/             # Receive events from tracker
-│   │       ├── analytics/          # Query, aggregate, cache
-│   │       ├── sites/              # Site management, API keys
-│   │       ├── auth/               # JWT auth, user management
-│   │       ├── rules/              # Rules engine (Phase 2)
-│   │       ├── alerts/             # Alert service (Phase 2)
-│   │       ├── enforce/            # Enforcement API (Phase 2)
-│   │       └── billing/            # Subscription, plan limits
-│   ├── dashboard/                  # React + Vite frontend
+│   │       ├── auth/                # JWT auth, user management
+│   │       ├── ingest/              # POST /collect → BullMQ → PostgreSQL
+│   │       ├── analytics/           # Query endpoints + Redis cache
+│   │       ├── sites/               # Site CRUD, API keys, plan limits
+│   │       ├── agent-detection/     # 3-layer bot detection
+│   │       ├── health/              # Health check
+│   │       ├── prisma/              # Database service
+│   │       └── redis/               # Cache service
+│   ├── dashboard/                   # React + Vite frontend
 │   │   └── src/
-│   │       ├── pages/
-│   │       ├── components/
-│   │       └── hooks/
-│   └── tracker/                    # JS embed snippet
+│   │       ├── pages/               # overview, agents, pages-stats, timeline, sites
+│   │       ├── components/          # layout, ui (stat-card, range-selector)
+│   │       └── hooks/               # use-auth, use-analytics, use-sites
+│   └── tracker/                     # JS embed snippet
 │       └── src/
-│           ├── detect.ts           # Agent detection logic
-│           ├── collect.ts          # Event collection & send
-│           └── index.ts            # Entry point
+│           ├── detect.ts            # Client-side agent detection
+│           ├── collect.ts           # sendBeacon/fetch event sending
+│           └── index.ts             # Auto-init, SPA tracking
 ├── packages/
-│   └── types/                      # Shared TypeScript types
+│   ├── types/                       # @agent-analytics/types
+│   │   └── src/
+│   │       ├── agents.ts            # KNOWN_AGENTS (16 bots) + confidence
+│   │       ├── event.ts             # AgentEvent, EnrichedEvent
+│   │       ├── analytics.ts         # AnalyticsOverview, PageStats, etc.
+│   │       └── site.ts              # PlanType, PLAN_LIMITS
+│   └── server-sdk/                  # Server-side middleware (UNCOMMITTED)
 │       └── src/
-│           ├── event.ts
-│           ├── analytics.ts
-│           ├── site.ts
-│           └── rules.ts            # Rule types (Phase 2)
-├── docs/
-│   └── SPEC.md                     # Full product spec
-├── docker-compose.yml
-├── turbo.json
-└── package.json
+│           ├── adapters/
+│           │   ├── express.ts       # Express middleware
+│           │   ├── fastify.ts       # Fastify plugin
+│           │   └── next.ts          # Next.js middleware
+│           └── core/
+│               ├── detector.ts      # Server-side agent detection
+│               ├── filter.ts        # Skip static files
+│               ├── buffer.ts        # Event batching
+│               ├── transport.ts     # Send to ingest API
+│               └── config.ts        # Configuration
+├── docs/                            # Specs and business docs
+├── docker-compose.yml               # PostgreSQL (5437) + Redis (6381)
+├── turbo.json                       # Turborepo pipeline
+└── .env                             # Environment variables
 ```
 
 ---
 
-## Database Schema
+## Deployment
 
-### sites
+| Service | Platform | URL |
+|---------|----------|-----|
+| API | Railway | https://api-production-feb6.up.railway.app |
+| Dashboard | Vercel | https://dashboard-five-lemon-91.vercel.app |
+| Tracker CDN | Cloudflare R2 | https://pub-734a26198d39470eb9a7702060cae3a1.r2.dev |
+
+---
+
+## Database Schema (Current)
+
 ```sql
-id UUID PRIMARY KEY
-user_id INT
-domain VARCHAR(255)
-api_key VARCHAR(64) UNIQUE
-plan VARCHAR(20) DEFAULT 'free'
-created_at TIMESTAMPTZ
+-- users
+id          UUID PK
+email       VARCHAR UNIQUE
+password    VARCHAR (bcrypt, 12 rounds)
+name        VARCHAR
+created_at  TIMESTAMPTZ
+
+-- sites
+id          UUID PK
+user_id     UUID FK → users
+domain      VARCHAR
+api_key     VARCHAR UNIQUE (aa_ + 48 hex chars)
+plan        VARCHAR (free | starter | pro | enterprise)
+created_at  TIMESTAMPTZ
+
+-- events (partitioned by timestamp)
+id          UUID PK
+site_id     UUID FK → sites
+url         TEXT
+action      VARCHAR (pageview | click | fetch | error)
+is_agent    BOOLEAN
+agent_name  VARCHAR
+confidence  SMALLINT (0-100)
+source      VARCHAR (tracker | server)  ← recently added
+timestamp   TIMESTAMPTZ
+meta        JSONB
+
+-- daily_aggregates
+id          UUID PK
+site_id     UUID FK → sites
+date        DATE
+total_events    INT
+agent_events    INT
+unique_agents   INT
+top_agents      JSONB
+
+-- monthly_usage
+id          UUID PK
+site_id     UUID FK → sites
+month       DATE
+event_count INT
 ```
 
-### events (partitioned by timestamp)
+### Schema Changes Needed (v3)
+
 ```sql
-id BIGSERIAL
-site_id UUID
-session_id VARCHAR(64)
-url TEXT
-action VARCHAR(50)           -- pageview | click | fetch | error
-is_agent BOOLEAN
-agent_name VARCHAR(100)      -- GPTBot | ClaudeBot | PerplexityBot | ...
-confidence SMALLINT          -- 0-100, detection confidence score
-country VARCHAR(2)
-timestamp TIMESTAMPTZ
-meta JSONB                   -- extra data (status code, error message...)
-```
+-- Add to events table
+ALTER TABLE events ADD COLUMN agent_type VARCHAR(20);      -- training | search | on_demand
+ALTER TABLE events ADD COLUMN referrer_domain VARCHAR(255);
+ALTER TABLE events ADD COLUMN referrer_type VARCHAR(20);    -- ai_referral | organic | direct
 
-### Key indexes
-```sql
-CREATE INDEX idx_events_site_agent ON events(site_id, is_agent, timestamp DESC);
-CREATE INDEX idx_events_agent_name ON events(agent_name, timestamp DESC);
-```
+-- New: page-level AI scores (computed daily by cron)
+CREATE TABLE page_ai_scores (
+  id              UUID PK,
+  site_id         UUID FK → sites,
+  url             VARCHAR(2048),
+  date            DATE,
+  ai_score        INT (0-100),
+  crawl_score     INT (0-40),
+  citation_score  INT (0-35),
+  readiness_score INT (0-25),
+  crawl_count     INT,
+  referral_count  INT,
+  agent_count     INT,
+  top_agent       VARCHAR(100),
+  UNIQUE(site_id, url, date)
+);
 
----
-
-## Agent Detection — 3 Layers
-
-### Layer 1: Server-side User Agent (most reliable)
-Known bots: GPTBot, ClaudeBot, Claude-Web, Google-Extended, PerplexityBot, ByteSpider, FacebookBot, Applebot, Amazonbot, DuckAssistant, YouBot
-
-### Layer 2: Behavioral (client-side)
-- No mousemove within first 5 seconds
-- No scroll events
-- Overly regular request timing
-- No focus/blur events
-
-### Layer 3: Request Patterns (server-side)
-- Missing Referer header
-- Unusual Accept header
-- Does not load secondary assets (img, css, fonts)
-- Burst requests from same IP
-
----
-
-## API Endpoints
-
-### Ingest (public, rate-limited)
-```
-POST /collect                  # Receive event (extended with commerce fields)
-```
-
-### Analytics (authenticated)
-```
-GET /analytics/agent-overview  # Agent traffic overview + revenue
-GET /analytics/agent-funnel    # Commerce funnel per agent source
-GET /analytics/agent-attribution # Revenue attribution by agent
-GET /analytics/agent-products  # Per-product agent analytics
-GET /analytics/timeline        # Time series data
-```
-
-### Readiness (authenticated)
-```
-POST /readiness/scan           # Trigger product catalog scan
-GET  /readiness/score          # Store + per-product readiness scores
-POST /readiness/fix            # Apply auto-fixes
-```
-
-### Competitive Intelligence (authenticated)
-```
-POST /competitors/track        # Set up category + competitor tracking
-GET  /competitors/report       # Competitive positioning report
-```
-
-### Stores (authenticated)
-```
-GET    /stores                 # List stores
-POST   /stores                 # Create new store
-GET    /stores/:id/snippet     # Get tracking snippet
-POST   /stores/:id/rotate-key  # Rotate API key
+-- New: AI referral tracking
+CREATE TABLE ai_referrals (
+  id              UUID PK,
+  site_id         UUID FK → sites,
+  referrer_domain VARCHAR(255),
+  landing_url     VARCHAR(2048),
+  timestamp       TIMESTAMPTZ,
+  meta            JSONB
+);
 ```
 
 ---
 
-## Business Model
+## What's Built vs. What's Needed
 
-| Plan | Price | Stores | Products | Key Features |
-|------|-------|--------|----------|--------------|
-| Free | $0 | 1 | 100 | Agent dashboard, basic readiness, 7d retention |
-| Growth | $49/mo | 3 | 1,000 | Full funnel, attribution, optimizer, 90d retention |
-| Pro | $149/mo | 10 | 10,000 | Competitive intel, auto-fix, API, 1yr retention |
-| Agency | $399/mo | 50 | Unlimited | White-label, client reports, team seats |
-| Enterprise | Custom | Unlimited | Unlimited | Custom integrations, SLA, dedicated CSM |
+### ✅ BUILT — Reuse 100%
 
-> Full business model: [docs/BUSINESS-MODEL.md](docs/BUSINESS-MODEL.md)
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Turborepo monorepo | ✅ Done | pnpm workspaces, turbo.json |
+| Docker Compose | ✅ Done | PostgreSQL (5437) + Redis (6381) |
+| NestJS API scaffold | ✅ Done | Fastify adapter, modular structure |
+| POST /collect ingest | ✅ Done | DTO validation, throttle, 202 response |
+| BullMQ queue + worker | ✅ Done | 3 attempts, exponential backoff |
+| Event processor | ✅ Done | Validate site, plan limits, dedup, insert, aggregate |
+| 3-layer agent detection | ✅ Done | UA (95), behavioral (60), pattern (40) |
+| JWT authentication | ✅ Done | Register, login, guards |
+| Site management | ✅ Done | CRUD, API keys, plan limits |
+| Analytics endpoints | ✅ Done | overview, agents, pages, timeline |
+| Redis cache | ✅ Done | 5min TTL, invalidation on write |
+| React dashboard | ✅ Done | Overview, agents, pages-stats, timeline, sites |
+| JS tracker | ✅ Done | IIFE bundle, auto-init, SPA support |
+| Server SDK | ✅ Done | Express, Fastify, Next.js (UNCOMMITTED!) |
+| Deployed | ✅ Done | Railway + Vercel + Cloudflare R2 |
+
+### 🔨 NEEDS BUILDING — v3 Features
+
+| Feature | Priority | Effort | Phase |
+|---------|----------|--------|-------|
+| Agent type classification (training/search/on_demand) | P0 | 1 day | Phase 1 |
+| AI referral detection in tracker | P0 | 2 days | Phase 1 |
+| Page-level AI analysis endpoint | P0 | 2 days | Phase 1 |
+| AI referral analytics endpoint | P0 | 2 days | Phase 1 |
+| Dashboard: Content Analysis page | P0 | 3 days | Phase 1 |
+| Dashboard: AI Referrals page | P0 | 2 days | Phase 1 |
+| Landing page (agentpulse.com) | P0 | 3 days | Phase 1 |
+| Stripe integration | P1 | 3 days | Phase 1 |
+| Content AI Score engine | P1 | 5 days | Phase 2 |
+| Recommendations engine | P1 | 3 days | Phase 2 |
+| Weekly email digest | P1 | 2 days | Phase 2 |
+| Alert system | P2 | 3 days | Phase 2 |
+| Laravel/PHP SDK | P2 | 5 days | Phase 3 |
+| WordPress plugin | P2 | 5 days | Phase 3 |
+| Agency/white-label features | P3 | 10 days | Phase 3 |
+
+### ❌ DEPRECATED — Do NOT Build
+
+| Feature | Reason |
+|---------|--------|
+| Shopify App / integration | SPEC-v2 deprecated, no team expertise |
+| WooCommerce plugin | SPEC-v2 deprecated |
+| E-commerce funnel tracking | SPEC-v2 deprecated |
+| Product readiness scoring (e-commerce) | SPEC-v2 deprecated |
+| Agent-attributed revenue (AAR) | SPEC-v2 deprecated |
+| robots.txt management | Known Agents does this well |
+| Bot blocking/control | Cloudflare does this free |
+| On-premise deployment | Too early |
+| Autonomous agent tracking | Market doesn't exist yet |
+
+---
+
+## Roadmap
+
+### Phase 1: Ship & Validate (Month 1-2)
+
+**Goal:** 500 free installs, validate demand.
+
+```
+Sprint 1-2 (Week 1-2): Backend
+├── [ ] Commit server-sdk package
+├── [ ] Migration: add agent_type, referrer_domain, referrer_type to events
+├── [ ] Migration: create page_ai_scores table
+├── [ ] Migration: create ai_referrals table
+├── [ ] Add agent type classification in event processor
+├── [ ] Add AI referral detection in tracker
+├── [ ] New endpoint: GET /analytics/pages/ai-interest
+├── [ ] New endpoint: GET /analytics/referrals
+└── [ ] Update PLAN_LIMITS to match v3 pricing
+
+Sprint 3-4 (Week 3-4): Frontend + Launch Prep
+├── [ ] Dashboard: Content Analysis page (page-level AI interest)
+├── [ ] Dashboard: AI Referrals page
+├── [ ] Enhance Overview with AI ratio highlight + agent type badges
+├── [ ] Landing page for agentpulse.com
+├── [ ] Stripe integration (Starter $19 + Pro $49)
+├── [ ] Onboarding flow for new users
+└── [ ] Product Hunt / Hacker News launch prep
+
+Sprint 5-6 (Week 5-6): Launch
+├── [ ] Product Hunt launch
+├── [ ] Hacker News "Show HN" post
+├── [ ] Dev.to / Medium launch articles
+├── [ ] Reddit posts (r/webdev, r/selfhosted, r/seo)
+└── [ ] Twitter/X threads with AI traffic data/insights
+```
+
+**Success criteria:** 500 free installs, 50 DAU, 10 user interviews
+
+### Phase 2: Monetize (Month 3-4)
+
+**Goal:** 50 paying customers, $2-3K MRR.
+
+```
+├── [ ] Content AI Score calculation engine (daily cron)
+├── [ ] Recommendations engine (rule-based)
+├── [ ] Weekly email digest (free tier)
+├── [ ] Real-time alerts (paid tiers)
+├── [ ] Export CSV/PDF (Pro tier)
+├── [ ] Blog: weekly AI traffic insights posts
+└── [ ] Free tool: "AI Bot Traffic Scanner" (scan any URL)
+```
+
+**Success criteria:** 1,500 free users, 50 paid, $2-3K MRR, <8% churn
+
+### Phase 3: Scale (Month 5-8)
+
+**Goal:** Multi-platform SDKs, agency features, $10K MRR.
+
+```
+├── [ ] Laravel/PHP SDK
+├── [ ] WordPress plugin
+├── [ ] Nginx log parser
+├── [ ] Python/Django middleware
+├── [ ] Agency multi-site management
+├── [ ] White-label reports (Business tier)
+├── [ ] Team member access controls
+├── [ ] API documentation + public API
+└── [ ] Competitive AI visibility (lightweight add-on)
+```
+
+**Success criteria:** 5,000 free users, 200 paid, $8-15K MRR
+
+---
+
+## Key Metrics
+
+| Metric | North Star |
+|--------|-----------|
+| **Primary** | Active sites with AI traffic detected |
+| Growth | Free installs, paid conversions, MRR |
+| Engagement | Dashboard DAU, time on dashboard |
+| Revenue | MRR, ARPU, churn rate |
+| Unit economics | CAC, LTV, LTV:CAC ratio |
+
+---
+
+## Competitive Landscape
+
+```
+                    DETECT        ANALYZE       OPTIMIZE
+                   ─────────────────────────────────────────────
+Cloudflare          ✅             ❌            ❌        FREE
+Known Agents        ✅             ❌            ❌        FREE/WP
+Profound            ✅             ✅            ✅        $$$$ Enterprise
+AgentPulse          ✅             ✅            ✅        $0-149 SMB/Dev
+```
+
+**Our moat:** Analytics depth + multi-platform SDKs + developer-first distribution.
+
+**Not our fight:** Detection (Cloudflare free), blocking (Cloudflare free), robots.txt (Known Agents).
+
+---
+
+## Pivot Signals — When to Change Direction
+
+| Signal | Observed at | Action |
+|--------|------------|--------|
+| Free installs < 200 by Month 2 | Month 2 | Pivot marketing, not product |
+| Paid conversion < 1.5% by Month 4 | Month 4 | Pivot to Content AI Score standalone |
+| Churn > 15% monthly | Month 4+ | Product doesn't retain — investigate |
+| Cloudflare adds analytics | Any time | Differentiate on cross-platform + depth |
+| Revenue < $2K MRR by Month 6 | Month 6 | Evaluate pivot to B2B API or AEO tool |
 
 ---
 
 ## Environment Variables
 
 ```env
-# API
-DATABASE_URL=postgresql://user:pass@localhost:5432/agent_analytics
-REDIS_URL=redis://localhost:6379
-JWT_SECRET=
+DATABASE_URL=postgresql://postgres:postgres@localhost:5437/agent_analytics
+REDIS_URL=redis://localhost:6381
+JWT_SECRET=your-secret-key-change-in-production
 JWT_EXPIRES_IN=7d
-
-# Billing
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
-
-# Shopify
-SHOPIFY_API_KEY=
-SHOPIFY_API_SECRET=
-
-# App
-APP_URL=https://agentpulse.io
-TRACKER_URL=https://cdn.agentpulse.io/tracker.js
+APP_URL=http://localhost:3000
+TRACKER_CDN_URL=http://localhost:3002/tracker.js
 NODE_ENV=development
 ```
 
 ---
 
-## Non-goals (Current)
-- Mobile SDK
-- Agentic Commerce control/blocking (Cloudflare's territory)
-- Content licensing/monetization (TollBit's territory)
-- General SEO/AEO tools (Semrush's territory)
-- Custom store builder (platform territory)
+## Quick Start
 
----
+```bash
+# Prerequisites: Node 20+, pnpm 9+, Docker
 
-# Roadmap & Progress
+# 1. Start infrastructure
+docker compose up -d
 
-## Existing Foundation (from v1 — reusable)
+# 2. Setup database
+cd apps/api && npx prisma migrate dev && cd ../..
 
-### Infrastructure ✅
-- [x] Turborepo monorepo setup
-- [x] Docker Compose (PostgreSQL + Redis)
-- [x] Deploy API to Railway
-- [x] Deploy Dashboard to Vercel
-- [x] Deploy Tracker to Cloudflare R2
+# 3. Start all apps
+pnpm dev
 
-### Ingest Pipeline ✅
-- [x] POST /collect endpoint
-- [x] ThrottlerGuard rate limiting
-- [x] DTO validation with class-validator
-- [x] Server-side UA detection (Layer 1)
-- [x] BullMQ queue for async processing
-- [x] Event processor worker
-- [x] Site validation + plan limit checks
-- [x] Redis deduplication (1s TTL)
-- [x] PostgreSQL event insertion
-
-### Auth & Sites ✅
-- [x] JWT authentication
-- [x] User registration and login
-- [x] Site CRUD + API keys
-- [x] Embed snippet display
-
-### Dashboard Shell ✅
-- [x] Login / Register pages
-- [x] Sites list page
-- [x] Overview dashboard (stats cards + chart)
-
-### Agent Detection ✅ (partial)
-- [x] Layer 1: Server UA match (95 confidence)
-- [x] Layer 2: Behavioral signals (60 confidence)
-- [x] KNOWN_AGENTS constant
-- [ ] Layer 3: Request patterns (40 confidence)
-
----
-
-## Phase 1: Pivot to AgentPulse (Month 1-3)
-
-### 1.1 Extend Data Model for Commerce
-- [ ] Add commerce fields to events table (event_type, product_id, product_price, order_id, order_value, agent_source)
-- [ ] Create `agent_sessions` partitioned table
-- [ ] Create `daily_agent_stats` aggregate table
-- [ ] Create `product_readiness` table
-- [ ] Run migrations with CONCURRENTLY indexes
-- [ ] Update Prisma schema
-
-### 1.2 Extend Agent Detection for Commerce
-- [ ] Add Layer 4: Commerce signals (referrer from chatgpt.com, perplexity.ai, etc.)
-- [ ] Add shopping agent UAs (ChatGPT-User shopping, Google AI Mode)
-- [ ] Add agent_source classification (chatgpt_shopping, google_ai_mode, perplexity_buy, etc.)
-- [ ] Update event DTO with commerce fields
-- [ ] Server-side session stitching for agents
-
-### 1.3 Agent Traffic Dashboard (extend existing)
-- [ ] Agent overview endpoint (GET /analytics/agent-overview)
-- [ ] Agent traffic by source (ChatGPT vs Google AI Mode vs Perplexity)
-- [ ] Agent revenue tracking
-- [ ] Agent vs Human traffic split
-- [ ] Dashboard: agent source breakdown table
-- [ ] Dashboard: agent traffic trend chart
-- [ ] Dashboard: revenue by agent source cards
-- [ ] Date range picker (1d / 7d / 30d)
-
-### 1.4 Shopify App (Primary Distribution)
-- [ ] Shopify app scaffold (OAuth, App Bridge)
-- [ ] Product catalog sync via Products API
-- [ ] Order webhook integration (attribution)
-- [ ] Auto-inject server-side tracking
-- [ ] Embedded dashboard in Shopify Admin
-- [ ] Shopify App Store listing
-- [ ] App Store SEO optimization
-
-### 1.5 Free Scan Tool (Acquisition)
-- [ ] Public endpoint: POST /scan?url=xxx
-- [ ] Crawl store URL for structured data
-- [ ] Detect AI agent traffic from public signals
-- [ ] Generate instant readiness report
-- [ ] Landing page: agentpulse.io/scan
-- [ ] Share-friendly results page (OG tags)
-
----
-
-## Phase 2: Full Analytics (Month 4-6)
-
-### 2.1 Agent Commerce Funnel
-- [ ] Funnel endpoint (GET /analytics/agent-funnel)
-- [ ] Stage tracking: discovery → view → cart → checkout → purchase
-- [ ] Per-agent-source funnel breakdown
-- [ ] Drop-off analysis with insights
-- [ ] Dashboard: funnel visualization component
-- [ ] Dashboard: drop-off insights panel
-
-### 2.2 Product Readiness Scoring
-- [ ] Product catalog scanner (BullMQ job)
-- [ ] 25-point scoring engine (schema, content, technical)
-- [ ] Per-product score calculation
-- [ ] Issue detection with severity levels
-- [ ] Fix suggestions generator
-- [ ] Readiness API endpoints
-- [ ] Dashboard: store readiness overview
-- [ ] Dashboard: per-product score table
-- [ ] Dashboard: issue breakdown with fix actions
-
-### 2.3 Agent Attribution Engine
-- [ ] Server-side attribution logic
-- [ ] Multi-touch attribution model
-- [ ] Order ↔ agent session matching
-- [ ] Revenue by agent source calculation
-- [ ] Revenue by product × agent source
-- [ ] Attribution API endpoints
-- [ ] Dashboard: attribution report page
-- [ ] Dashboard: revenue breakdown charts
-
-### 2.4 Alerts & Notifications
-- [ ] New agent detected alert
-- [ ] Agent traffic spike alert (>200% baseline)
-- [ ] Readiness score drop alert
-- [ ] Email notification channel
-- [ ] Webhook notification channel
-- [ ] Weekly summary email
-
-### 2.5 WooCommerce Plugin
-- [ ] WordPress plugin scaffold
-- [ ] Server-side middleware injection
-- [ ] WooCommerce order hook integration
-- [ ] Product sync via REST API
-- [ ] Dashboard via iframe
-
----
-
-## Phase 3: Intelligence (Month 7-10)
-
-### 3.1 Competitive Intelligence
-- [ ] Category + competitor tracking setup
-- [ ] Periodic AI platform querying (ChatGPT, Perplexity, Google AI)
-- [ ] Brand mention detection and ranking
-- [ ] Competitor trend tracking
-- [ ] Competitive report API endpoints
-- [ ] Dashboard: competitive positioning page
-- [ ] Dashboard: trend alerts
-
-### 3.2 AI-Powered Optimization
-- [ ] Product description rewrite suggestions (LLM-powered)
-- [ ] Auto-generate missing JSON-LD structured data
-- [ ] Schema validation and auto-fix
-- [ ] Optimization impact estimation
-- [ ] A/B insights from aggregate data
-- [ ] Dashboard: optimization suggestions page
-- [ ] Dashboard: auto-fix actions with preview
-
-### 3.3 Advanced Analytics
-- [ ] Agent behavior pattern analysis
-- [ ] Category-level benchmarks (cross-store aggregates)
-- [ ] Agent algorithm change detection
-- [ ] Predictive analytics (which products agents will favor)
-- [ ] Custom date range and segment filters
-
-### 3.4 Billing & Monetization
-- [ ] Stripe integration for Growth + Pro plans
-- [ ] Shopify billing API integration
-- [ ] Usage tracking per plan limits
-- [ ] Upgrade prompts in dashboard
-- [ ] Annual discount handling
-
----
-
-## Phase 4: Scale (Month 11-14)
-
-### 4.1 Platform Expansion
-- [ ] BigCommerce integration
-- [ ] Magento integration
-- [ ] Next.js / Vercel middleware package
-- [ ] Cloudflare Workers middleware
-- [ ] Generic REST API for custom stores
-- [ ] NPM package: @agentpulse/tracker
-
-### 4.2 Agency & Enterprise
-- [ ] Multi-store management dashboard
-- [ ] White-label report generation
-- [ ] Team seats with role-based access
-- [ ] Custom branding options
-- [ ] Enterprise SSO (SAML)
-- [ ] Dedicated account management
-
-### 4.3 Advanced Attribution
-- [ ] Cross-device agent journey tracking
-- [ ] Agent-assisted attribution (agent discovered, human purchased)
-- [ ] Incrementality measurement
-- [ ] Attribution model comparison tool
-- [ ] Export to ad platforms (Meta, Google Ads)
-
----
-
-## Backlog (Future)
-
-- [ ] A/B testing framework for agent optimization
-- [ ] Real-time agent activity feed
-- [ ] Slack / Discord bot integration
-- [ ] Zapier / Make webhook integrations
-- [ ] GraphQL API option
-- [ ] Public API for third-party integrations
-- [ ] Mobile app for store owners
-- [ ] AI agent chatbot for store analytics Q&A
-- [ ] Content marketplace features (if market demands)
-- [ ] Agent commerce benchmarks report (annual publication)
+# Dashboard: http://localhost:5173
+# API: http://localhost:3002
+# Tracker: served by API at /tracker.js
+```
