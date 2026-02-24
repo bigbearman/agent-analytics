@@ -45,6 +45,7 @@ model Event {
   agentName  String?  @map("agent_name") @db.VarChar(100)
   confidence Int      @default(0) @db.SmallInt
   country    String?  @db.VarChar(2)
+  source     String?  @db.VarChar(10)
   timestamp  DateTime @default(now())
   meta       Json?
   site       Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)

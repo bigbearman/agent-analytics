@@ -11,6 +11,7 @@ interface ProcessEventPayload {
   url: string;
   action: string;
   timestamp: number;
+  source?: 'tracker' | 'server';
   meta?: Record<string, unknown>;
   serverAgent: {
     isAgent: boolean;
@@ -71,6 +72,7 @@ export class EventProcessor extends WorkerHost {
         isAgent: data.serverAgent.isAgent,
         agentName: data.serverAgent.isAgent ? data.serverAgent.agentName : null,
         confidence: data.serverAgent.confidence,
+        source: data.source ?? null,
         timestamp: new Date(data.timestamp),
         meta: (data.meta as Prisma.InputJsonValue) ?? undefined,
       },

@@ -1,0 +1,42 @@
+{
+  "name": "@agent-analytics/server-sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./fastify": {
+      "types": "./dist/fastify.d.ts",
+      "import": "./dist/fastify.js",
+      "require": "./dist/fastify.cjs"
+    },
+    "./next": {
+      "types": "./dist/next.d.ts",
+      "import": "./dist/next.js",
+      "require": "./dist/next.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@agent-analytics/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.3.6",
+    "typescript": "^5.7.3"
+  }
+}

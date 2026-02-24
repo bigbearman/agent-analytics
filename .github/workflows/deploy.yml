@@ -40,6 +40,9 @@ jobs:
       - name: Build Tracker
         run: pnpm run build --filter=@agent-analytics/tracker
 
+      - name: Build Server SDK
+        run: pnpm run build --filter=@agent-analytics/server-sdk
+
       - name: Run tests
         run: pnpm test || true
 

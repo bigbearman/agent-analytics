@@ -32,5 +32,9 @@ export class CollectEventDto {
   timestamp!: number;
 
   @IsOptional()
+  @IsEnum(['tracker', 'server'])
+  source?: 'tracker' | 'server';
+
+  @IsOptional()
   meta?: Record<string, unknown>;
 }
