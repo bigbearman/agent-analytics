@@ -1,92 +1,103 @@
-# AgentPulse — Product Specification v3
+# AgentPulse — Product Specification
 
-> **Version:** 3.0
 > **Date:** 2026-02-24
 > **Status:** Active
-> **Previous:** SPEC-v2.md (e-commerce pivot — deprecated), SPEC.md (publisher focus — archived)
 
 ---
 
-## Why v3?
+## 1. Product Vision
 
-| Version | Direction | Problem |
-|---------|-----------|---------|
-| v1 | Publisher content protection | Market too small, publishers won't pay for tracking |
-| v2 | E-commerce AI commerce analytics | 0% built, needs Shopify expertise team doesn't have, market unvalidated |
-| **v3** | **AI Traffic Intelligence for developers & SMBs** | **70% built, market validated by Cloudflare/Profound/Known Agents, team fit** |
+**AgentPulse** is an AI traffic intelligence platform. It answers the question every website owner will soon ask:
 
-v3 is grounded in what exists in code, what the market has validated, and what the team can ship fast.
+> "What is AI doing with my content?"
+
+**One-liner:** Google Analytics for AI traffic.
+
+Google Analytics tracks humans. AgentPulse tracks AI — which bots crawl your site, which content they find valuable, which AI engines cite you, and how to optimize for AI visibility.
 
 ---
 
-## 1. Problem Statement
+## 2. Problem
 
 ### The AI Traffic Blindspot
 
-Every website has AI traffic. Google Analytics doesn't show it. Site owners are blind to:
+~5-9% of website traffic comes from AI bots (Cloudflare Radar 2025). This traffic is **invisible** in Google Analytics, Adobe Analytics, and Matomo because:
 
-- **Which AI bots** visit their site and how often
-- **Which content** AI finds most valuable (crawl frequency by page)
-- **How much traffic** AI sends back via citations (AI referrals)
-- **Whether their content** is optimized for AI consumption (AI readiness)
-- **Trends** — is AI traffic growing or declining, and why?
+- AI crawlers don't execute JavaScript (no GA tag fires)
+- AI bots don't use cookies or sessions
+- No UTM parameters, no referrer headers for training bots
+- GA lumps AI referrals (chatgpt.com, perplexity.ai) into generic "Referral" bucket
 
-### Who Cares?
+Website owners can't answer:
+1. **Which AI bots** visit their site and how often?
+2. **Which content** does AI find most valuable?
+3. **How much traffic** does AI send back via citations?
+4. **Is their content** optimized for AI consumption?
+5. **Are trends** going up or down, and why?
 
-| Persona | Pain | Willingness to Pay |
-|---------|------|--------------------|
-| **Developer/Blogger** | "Is AI crawling my docs? Am I getting cited?" | Low ($0-19/mo) |
-| **Content site / Publisher** | "AI is scraping my content — how much? Can I prove it?" | Medium ($19-49/mo) |
-| **SEO/Marketing team** | "How do I optimize for AI search? What content performs?" | High ($49-149/mo) |
-| **Agency managing multiple sites** | "I need AI traffic reports for all my clients" | High ($149+/mo) |
+### Who Has This Problem?
+
+| Persona | Pain | Budget |
+|---------|------|--------|
+| **Developer / Blogger** | "Is AI crawling my docs? Am I getting cited?" | $0-19/mo |
+| **Content Site / Publisher** | "AI scrapes my content — how much? Can I prove it?" | $19-49/mo |
+| **SEO / Marketing Team** | "How do I optimize for AI search? What content performs?" | $49-149/mo |
+| **Agency (multi-site)** | "I need AI traffic reports for all my clients" | $149+/mo |
 
 ### Market Validation
 
-The market is real — proven by:
-- **Profound** raised $58.5M to solve this for enterprise
-- **Cloudflare** added free AI Crawl Control for all users (proves demand at scale)
-- **Known Agents** has thousands of WordPress installs
-- **Vercel** built BotID into their platform
+This isn't a theoretical market. Real companies are investing:
 
-But: Profound = enterprise-only. Cloudflare = detection only (no analytics). Known Agents = WordPress only, basic tracking.
+| Company | What they do | Signal |
+|---------|-------------|--------|
+| **Profound** | AI traffic intelligence for enterprise | $58.5M raised (Sequoia, Kleiner Perkins). Serves Ramp, MongoDB, DocuSign. |
+| **Cloudflare** | Free AI Crawl Control for all users | Proves mass demand. But detection-only, no analytics. |
+| **Known Agents** | WordPress plugin for bot tracking | Thousands of installs. Free tier. Basic tracking only. |
+| **Vercel** | BotID built into platform | Platform-native, but Vercel-only. |
+| **Otterly/Peec AI** | AI visibility monitoring ($29-499/mo) | Track brand mentions in AI. Different angle but adjacent. |
 
-**Gap: No one provides AI traffic ANALYTICS for developers & SMBs across any hosting platform.**
+**The gap:** Profound serves Fortune 500. Cloudflare only detects. Known Agents only tracks on WordPress. Nobody provides AI traffic **analytics** for developers and SMBs across any hosting platform.
 
 ---
 
-## 2. Solution: "Google Analytics for AI Traffic"
+## 3. Solution
 
-### Positioning
+### Positioning vs. Competitors
 
 ```
-Cloudflare AI Crawl Control  =  "Security camera"  (sees who's at the door)
-AgentPulse                   =  "Business analyst"  (understands what they want)
+                       DETECT       ANALYZE        OPTIMIZE
+                       (who visits?) (what do they  (how to
+                                     care about?)   improve?)
+──────────────────────────────────────────────────────────────
+Cloudflare AI Crawl     ✅           ❌             ❌
+Known Agents            ✅           ❌             ❌
+Profound                ✅           ✅             ✅
+AgentPulse              ✅           ✅             ✅
+──────────────────────────────────────────────────────────────
+                        FREE         $$$$$          $$$$$
+                        (commodity)  Enterprise     SMB/Dev
+                                     only           ($0-149)
 ```
 
-We don't compete on detection. We compete on **intelligence**.
+AgentPulse doesn't compete on detection (Cloudflare does that free). AgentPulse competes on **intelligence** — at a price tier nobody else serves.
 
 ### Core Value Proposition
 
-> "AgentPulse tells you what AI thinks about your content — which pages AI crawls most,
-> which AI engines cite you, how your AI visibility is trending, and what to optimize."
+Cloudflare tells you: *"GPTBot visited 452 times. Block? Y/N"*
+
+AgentPulse tells you: *"GPTBot crawls your /blog/ 3x more than /docs/. ChatGPT cited your auth guide 47 times this week, driving 89 referral clicks. Your AI Score went up 12%. Here's what to optimize next."*
+
+The difference between a **metric** and an **insight**.
 
 ---
 
-## 3. Core Features — Phased
+## 4. Features — 3 Phases
 
 ### Phase 1: AI Traffic Dashboard (Month 1-2)
 
 **Goal:** Ship free tier, get 500 installs, validate demand.
 
-**Status: ~70% built.** Needs analytics depth + AI referral tracking.
-
-#### 3.1 AI Traffic Overview
-
-What it shows:
-- Total requests: human vs AI agent
-- Agent breakdown: which bots, how many visits, trend vs previous period
-- AI traffic ratio and trend (growing/declining)
-- Unique agents count
+#### 4.1 AI Traffic Overview
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -102,20 +113,17 @@ What it shows:
 │  PerplexityBot   198   ██████        16.5%       │
 │  Google-Extended 156   █████         13.0%       │
 │  Others          108   ███            8.9%       │
+│                                                  │
+│  Agent Types                                     │
+│  Training (GPTBot, ClaudeBot...)      67%        │
+│  Search (PerplexityBot, OAI-Search)   24%        │
+│  On-demand (ChatGPT-User...)           9%        │
 └─────────────────────────────────────────────────┘
 ```
 
-**Implementation:** Exists in `apps/api/src/analytics/`. Needs:
-- `agentChange` percentage calculation (partially done)
-- Agent type classification (training/search/on-demand)
+Shows: total vs AI traffic, agent breakdown, agent type classification (training/search/on-demand), trends vs previous period.
 
-#### 3.2 Page-Level AI Analysis (NEW — Key differentiator)
-
-What it shows:
-- Which pages AI crawls most
-- Per-page agent breakdown
-- Content categories AI prefers
-- Crawl frequency trends per page
+#### 4.2 Page-Level AI Analysis — Key Differentiator
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -133,15 +141,9 @@ What it shows:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Implementation:** New analytics query — `GROUP BY url, agentName` on existing events table. Server SDK already captures URL. Dashboard needs new page.
+Shows: which pages AI crawls most, per-page agent breakdown, crawl frequency trends. **No competitor offers this at SMB/dev tier.**
 
-#### 3.3 AI Referral Tracking (NEW — Critical for value)
-
-What it shows:
-- Traffic arriving FROM AI platforms (chatgpt.com, perplexity.ai, etc.)
-- Which AI engine sends most referral traffic
-- Landing pages from AI referrals
-- Referral trend over time
+#### 4.3 AI Referral Tracking
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -158,30 +160,44 @@ What it shows:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Implementation:** Parse `document.referrer` in tracker for known AI domains. New referral domains list in `packages/types/`. New analytics endpoint.
+Shows: traffic arriving FROM AI platforms (chatgpt.com, perplexity.ai, etc.), landing pages, trends. Closes the loop: AI crawls → AI cites → AI sends traffic.
 
-Known AI referral domains:
+AI referral domains tracked:
 ```typescript
-export const AI_REFERRAL_DOMAINS = [
-  'chatgpt.com',
-  'chat.openai.com',
-  'perplexity.ai',
-  'you.com',
-  'copilot.microsoft.com',
-  'gemini.google.com',
-  'claude.ai',
-  'phind.com',
-  'kagi.com',
-] as const;
+const AI_REFERRAL_DOMAINS = {
+  'chatgpt.com': 'ChatGPT',
+  'chat.openai.com': 'ChatGPT',
+  'perplexity.ai': 'Perplexity',
+  'you.com': 'You.com',
+  'copilot.microsoft.com': 'Microsoft Copilot',
+  'gemini.google.com': 'Gemini',
+  'claude.ai': 'Claude',
+  'phind.com': 'Phind',
+  'kagi.com': 'Kagi',
+};
 ```
+
+#### Phase 1 Dashboard
+
+```
+Sidebar:
+├── Overview          AI traffic overview with ratio + trends
+├── AI Agents         Agent breakdown with type badges
+├── Content Analysis  Page-level AI interest (NEW)
+├── AI Referrals      Referral tracking from AI platforms (NEW)
+├── Timeline          Time series with per-agent-type filter
+└── Sites             Site management
+```
+
+---
 
 ### Phase 2: AI Content Intelligence (Month 3-4)
 
-**Goal:** Launch paid tiers, reach 50 paying customers, $2-3K MRR.
+**Goal:** Launch paid tiers, 50 paying customers, $2-3K MRR.
 
-#### 3.4 Content AI Score
+#### 4.4 Content AI Score (0-100)
 
-Per-page scoring (0-100) measuring how "AI-friendly" content is:
+Per-page scoring measuring how "AI-friendly" content is:
 
 ```
 Score Components:
@@ -189,7 +205,7 @@ Score Components:
 │   ├── Crawl frequency (how often bots visit)           0-15
 │   ├── Multi-agent interest (# different bots)          0-10
 │   ├── Crawl trend (growing vs declining)               0-10
-│   └── Crawl depth (do bots visit related pages?)       0-5
+│   └── Crawl depth (bots visit related pages?)          0-5
 │
 ├── Citation Signal (35 points)
 │   ├── AI referral volume                               0-15
@@ -213,472 +229,391 @@ Score Components:
 │  /blog/prisma-vs-typeorm       65     28/40  18/35 19/25 │
 │  /pricing                      31     12/40   8/35 11/25 │
 │                                                           │
-│  💡 Quick wins:                                           │
-│  • Add FAQ schema to /pricing (+8 readiness points)      │
-│  • Update /blog/prisma-vs-typeorm — crawl high but       │
+│  Quick wins:                                              │
+│  - Add FAQ schema to /pricing (+8 readiness points)      │
+│  - Update /blog/prisma-vs-typeorm — crawl high but       │
 │    citation low, content may be outdated                  │
 └──────────────────────────────────────────────────────────┘
 ```
 
-**Implementation:** Computed from existing crawl data + new referral data + page scan (readiness). Readiness scan = new service that checks structured data via headless browser or API call.
+#### 4.5 AI Optimization Recommendations
 
-#### 3.5 AI Optimization Recommendations
-
-Rule-based engine suggesting content improvements:
+Rule-based engine suggesting improvements:
 
 ```typescript
-// Recommendation rules
 const RULES = [
-  {
-    condition: 'crawl_high AND citation_low',
-    recommendation: 'Content is being read by AI but not cited. May be outdated or lacking unique insights.',
-    impact: 'high',
-  },
-  {
-    condition: 'no_structured_data',
+  { condition: 'crawl_high AND citation_low',
+    recommendation: 'AI reads this but doesn\'t cite it. Content may be outdated or lack unique insights.',
+    impact: 'high' },
+  { condition: 'no_structured_data',
     recommendation: 'Add JSON-LD structured data (Article, FAQ, HowTo schema).',
-    impact: 'medium',
-  },
-  {
-    condition: 'no_llms_txt',
-    recommendation: 'Create llms.txt file to guide AI crawlers to your best content.',
-    impact: 'medium',
-  },
-  {
-    condition: 'crawl_declining',
-    recommendation: 'AI crawl frequency is dropping. Content may need refresh.',
-    impact: 'high',
-  },
-  {
-    condition: 'single_agent_only',
-    recommendation: 'Only one AI engine crawls this page. Improve discoverability across AI platforms.',
-    impact: 'low',
-  },
+    impact: 'medium' },
+  { condition: 'no_llms_txt',
+    recommendation: 'Create llms.txt file to guide AI crawlers to best content.',
+    impact: 'medium' },
+  { condition: 'crawl_declining',
+    recommendation: 'AI crawl frequency dropping. Content may need refresh.',
+    impact: 'high' },
+  { condition: 'single_agent_only',
+    recommendation: 'Only one AI engine crawls this. Improve cross-platform discoverability.',
+    impact: 'low' },
 ];
 ```
 
-#### 3.6 Alerts & Reports
+#### 4.6 Alerts & Reports
 
-- Weekly AI traffic email digest (free tier)
-- Real-time alerts: new bot detected, unusual crawl spike, citation drop (paid tiers)
-- Exportable PDF/CSV reports (pro tier)
+- **Free:** Weekly AI traffic email digest
+- **Starter:** Email alerts (new bot detected, crawl spike)
+- **Pro:** Real-time alerts, exportable PDF/CSV reports
+- **Business:** White-label reports, scheduled delivery
+
+---
 
 ### Phase 3: Platform & Scale (Month 5-8)
 
-**Goal:** Multi-platform SDKs, agency features, reach $10K MRR.
+**Goal:** Multi-platform SDKs, agency features, $10K MRR.
 
-#### 3.7 Multi-Platform SDKs
-
-Priority order based on team capability and market:
+#### 4.7 Multi-Platform SDKs
 
 ```
-P0 (built):  Express middleware, Fastify plugin, Next.js middleware
-P0 (built):  JS tracker snippet (client-side)
-P1 (month 5): Laravel/PHP middleware (team has PHP expertise)
-P1 (month 5): WordPress plugin (large market)
+P0 (done):   JS tracker snippet (client-side, any website)
+P0 (done):   Express middleware, Fastify plugin, Next.js middleware
+P1 (month 5): Laravel/PHP middleware
+P1 (month 5): WordPress plugin
 P2 (month 6): Nginx log parser (self-hosted servers)
 P2 (month 6): Python/Django middleware
 P3 (month 7): Cloudflare Workers integration
-P3 (month 7): Vercel integration (edge middleware)
+P3 (month 7): Vercel edge middleware
 ```
 
-#### 3.8 Competitive AI Visibility (Paid feature)
+Why this matters vs competitors:
+- **Cloudflare AI Crawl Control** — only works on Cloudflare
+- **Known Agents** — only works on WordPress
+- **Vercel BotID** — only works on Vercel
+- **AgentPulse** — works on **anything**: self-hosted VPS, AWS, DigitalOcean, shared hosting, any framework
 
-Check how your content ranks across AI engines:
+#### 4.8 Competitive AI Visibility (Lightweight)
 
+Check how your content ranks across AI engines. Lightweight implementation:
 - Query AI engines with relevant prompts
 - Track if your site/brand is mentioned
-- Compare vs competitors
-- Track trends over time
+- Compare vs competitors over time
 
-Note: This overlaps with Cluster B tools (Otterly, Peec AI). Implement as lightweight add-on, not core product. Consider partnership instead of build.
+Note: Overlaps with Otterly/Peec AI. Implement as add-on feature, not core product.
 
-#### 3.9 Agency / Multi-Site Management
+#### 4.9 Agency / Multi-Site Management
 
-- Unified dashboard across all client sites
-- Per-client reports with white-label option
+- Unified dashboard across client sites
+- Per-client white-label reports
 - Team member access controls
 - Bulk site management
 
 ---
 
-## 4. Technical Architecture
+## 5. Technical Architecture
 
-### What Exists (reuse 100%)
+### System Overview
 
 ```
-apps/api/           NestJS + Fastify backend
-├── auth/           JWT authentication
-├── ingest/         POST /collect → BullMQ queue → PostgreSQL
-├── analytics/      Overview, agents, pages, timeline queries
-├── sites/          Multi-tenant site management
-├── agent-detection/ 3-layer detection (UA + behavioral + pattern)
-├── prisma/         Database service
-└── redis/          Cache service
-
-apps/dashboard/     React + Vite frontend
-├── overview        Traffic overview page
-├── agents          Agent breakdown page
-├── pages-stats     Page statistics
-├── timeline        Timeline visualization
-└── sites           Site management
-
-apps/tracker/       Vanilla TS embed snippet (IIFE bundle)
-├── detect.ts       Client-side agent detection
-├── collect.ts      sendBeacon/fetch event sending
-└── index.ts        Auto-init, SPA tracking
-
-packages/server-sdk/ Server-side middleware (NEW — uncommitted)
-├── express.ts      Express middleware
-├── fastify.ts      Fastify plugin
-└── next.ts         Next.js middleware
-
-packages/types/     Shared TypeScript types
-├── agents.ts       Known agents + confidence scoring
-├── event.ts        Event interfaces
-├── analytics.ts    Analytics response types
-└── site.ts         Plan limits
+                    ┌──────────────┐
+                    │   Website    │
+                    └──────┬───────┘
+                           │
+              ┌────────────┴────────────┐
+              │                         │
+     ┌────────▼────────┐    ┌──────────▼──────────┐
+     │   JS Tracker    │    │    Server SDK        │
+     │  (client-side)  │    │ (Express/Fastify/    │
+     │  AI referrals   │    │  Next.js middleware)  │
+     │  Behavioral     │    │  UA detection         │
+     └────────┬────────┘    └──────────┬──────────┘
+              │                         │
+              └────────────┬────────────┘
+                           │
+                  POST /collect (202)
+                           │
+              ┌────────────▼────────────┐
+              │     NestJS API          │
+              │  ThrottlerGuard         │
+              │  DTO validation         │
+              │  Agent type classify    │
+              │  AI referral detect     │
+              └────────────┬────────────┘
+                           │
+                    BullMQ Queue
+                           │
+              ┌────────────▼────────────┐
+              │     Event Processor     │
+              │  Validate site + plan   │
+              │  Dedup (Redis 1s TTL)   │
+              │  Insert PostgreSQL      │
+              │  Update aggregates      │
+              │  Invalidate cache       │
+              └─────────────────────────┘
+                           │
+              ┌────────────▼────────────┐
+              │     Analytics API       │
+              │  Redis cache (5min)     │
+              │  SQL aggregation        │
+              │  Paginated responses    │
+              └────────────┬────────────┘
+                           │
+              ┌────────────▼────────────┐
+              │     React Dashboard     │
+              │  Overview, Agents,      │
+              │  Content, Referrals,    │
+              │  Timeline, Sites        │
+              └─────────────────────────┘
 ```
 
-### What Needs to Change
+### Codebase Structure
 
-#### 4.1 Database Schema Changes
+```
+apps/
+├── api/                    NestJS + Fastify backend
+│   └── src/
+│       ├── auth/           JWT authentication (register, login, guards)
+│       ├── ingest/         POST /collect → queue (DTO, controller, processor)
+│       ├── analytics/      Query endpoints + Redis cache
+│       ├── sites/          Site CRUD, API keys, plan enforcement
+│       ├── agent-detection/ 3-layer detection service
+│       ├── prisma/         Database service wrapper
+│       ├── redis/          Cache service
+│       └── health/         Health check
+├── dashboard/              React + Vite frontend
+│   └── src/
+│       ├── pages/          overview, agents, pages-stats, timeline, sites
+│       ├── components/     layout, ui (stat-card, range-selector)
+│       └── hooks/          use-auth, use-analytics, use-sites
+└── tracker/                Vanilla TS embed snippet (IIFE bundle)
+    └── src/
+        ├── detect.ts       Client-side agent detection
+        ├── collect.ts      sendBeacon/fetch event sending
+        └── index.ts        Auto-init, SPA tracking
+
+packages/
+├── types/                  @agent-analytics/types
+│   └── src/
+│       ├── agents.ts       16 known agents + confidence thresholds
+│       ├── event.ts        AgentEvent, EnrichedEvent, EventAction
+│       ├── analytics.ts    AnalyticsOverview, PageStats, TimelinePoint
+│       └── site.ts         PlanType, PLAN_LIMITS
+└── server-sdk/             Server-side middleware
+    └── src/
+        ├── adapters/       express.ts, fastify.ts, next.ts
+        └── core/           detector, filter, buffer, transport, config
+```
+
+### Database Schema
 
 ```sql
--- Add AI referral tracking
-ALTER TABLE events ADD COLUMN referrer_domain VARCHAR(255);
-ALTER TABLE events ADD COLUMN referrer_type VARCHAR(20);
--- 'ai_referral' | 'organic' | 'direct' | 'social' | 'other'
+-- Core tables (existing)
+users              (id, email, password, name, created_at)
+sites              (id, user_id, domain, api_key, plan, created_at)
+events             (id, site_id, url, action, is_agent, agent_name,
+                    confidence, source, timestamp, meta)
+daily_aggregates   (id, site_id, date, total_events, agent_events,
+                    unique_agents, top_agents)
+monthly_usage      (id, site_id, month, event_count)
 
--- Add agent type classification
-ALTER TABLE events ADD COLUMN agent_type VARCHAR(20);
--- 'training' | 'search' | 'on_demand' | 'unknown'
+-- New columns on events
+agent_type         VARCHAR(20)   -- training | search | on_demand | unknown
+referrer_domain    VARCHAR(255)  -- parsed referrer hostname
+referrer_type      VARCHAR(20)   -- ai_referral | organic | direct | other
 
--- New table: page-level AI scores (computed daily)
-CREATE TABLE page_ai_scores (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  site_id       UUID NOT NULL REFERENCES sites(id),
-  url           VARCHAR(2048) NOT NULL,
-  date          DATE NOT NULL,
-  ai_score      INTEGER NOT NULL DEFAULT 0,
-  crawl_score   INTEGER NOT NULL DEFAULT 0,
-  citation_score INTEGER NOT NULL DEFAULT 0,
-  readiness_score INTEGER NOT NULL DEFAULT 0,
-  crawl_count   INTEGER NOT NULL DEFAULT 0,
-  referral_count INTEGER NOT NULL DEFAULT 0,
-  agent_count   INTEGER NOT NULL DEFAULT 0,
-  top_agent     VARCHAR(100),
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(site_id, url, date)
-);
+-- New tables
+page_ai_scores     (id, site_id, url, date, ai_score, crawl_score,
+                    citation_score, readiness_score, crawl_count,
+                    referral_count, agent_count, top_agent)
+                    UNIQUE(site_id, url, date)
 
--- New table: AI referral sources
-CREATE TABLE ai_referrals (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  site_id       UUID NOT NULL REFERENCES sites(id),
-  referrer_domain VARCHAR(255) NOT NULL,
-  landing_url   VARCHAR(2048) NOT NULL,
-  timestamp     TIMESTAMPTZ NOT NULL,
-  meta          JSONB
-);
-
--- Index for fast queries
-CREATE INDEX CONCURRENTLY idx_events_url_agent
-  ON events(site_id, url, agent_name, timestamp);
-CREATE INDEX CONCURRENTLY idx_ai_referrals_site_time
-  ON ai_referrals(site_id, timestamp);
-CREATE INDEX CONCURRENTLY idx_page_scores_site_date
-  ON page_ai_scores(site_id, date);
+ai_referrals       (id, site_id, referrer_domain, landing_url,
+                    timestamp, meta)
 ```
 
-#### 4.2 New API Endpoints
+### Agent Detection — 3 Layers
 
-```typescript
-// Phase 1 endpoints
-GET /analytics/pages/ai-interest
-// Page-level AI crawl breakdown
-// Query: { siteId, range, limit, sortBy: 'crawl_count' | 'referral_count' | 'ai_score' }
-// Response: { data: PageAIInterest[], meta: PaginationMeta }
+```
+Layer 1: Server UA Match     → confidence = 95 (most reliable)
+  Match against 16 known bot user-agent patterns
 
-GET /analytics/referrals
-// AI referral traffic
-// Query: { siteId, range }
-// Response: { data: { sources: AIReferralSource[], total: number, trend: number } }
+Layer 2: Behavioral Signals  → confidence = 60
+  No mouse movement, no scroll, no focus/blur within 5 seconds
 
-GET /analytics/referrals/pages
-// Landing pages from AI referrals
-// Query: { siteId, range, source?: string }
-// Response: { data: AIReferralPage[] }
+Layer 3: Request Patterns    → confidence = 40
+  Missing Referer (+15), non-HTML Accept header (+15),
+  wildcard Accept (+10)
 
-// Phase 2 endpoints
-GET /analytics/content-score
-// Content AI Score per page
-// Query: { siteId, range, url?: string }
-// Response: { data: ContentAIScore[] }
-
-GET /analytics/recommendations
-// AI optimization recommendations
-// Query: { siteId, url?: string }
-// Response: { data: Recommendation[] }
-
-POST /scan/readiness
-// On-demand page readiness scan
-// Body: { url: string }
-// Response: { data: ReadinessReport }
+Combined: confidence = max(layers) + 5 per extra layer
+Threshold: is_agent = true when confidence >= 50
 ```
 
-#### 4.3 New Types (packages/types)
+### Agent Type Classification
 
 ```typescript
-// Agent type classification
-export type AgentType = 'training' | 'search' | 'on_demand' | 'unknown';
+type AgentType = 'training' | 'search' | 'on_demand' | 'unknown';
 
-export const AGENT_TYPE_MAP: Record<string, AgentType> = {
-  'GPTBot': 'training',
-  'ClaudeBot': 'training',
-  'Google-Extended': 'training',
-  'ByteSpider': 'training',
-  'Amazonbot': 'training',
-  'Applebot': 'training',
-  'Meta-ExternalAgent': 'training',
-  'OAI-SearchBot': 'search',
-  'PerplexityBot': 'search',
-  'YouBot': 'search',
-  'DuckAssistant': 'search',
-  'GoogleVertexBot': 'search',
-  'GeminiBot': 'search',
-  'Gemini-Deep-Research': 'search',
-  'ChatGPT-User': 'on_demand',
-  'Claude-User': 'on_demand',
-  'Perplexity-User': 'on_demand',
-};
+// Training bots — crawl to build/retrain LLMs (~80% of AI traffic)
+GPTBot, ClaudeBot, Google-Extended, ByteSpider,
+Meta-ExternalAgent, Amazonbot, Applebot
 
-// AI referral domains
-export const AI_REFERRAL_DOMAINS: Record<string, string> = {
-  'chatgpt.com': 'ChatGPT',
-  'chat.openai.com': 'ChatGPT',
-  'perplexity.ai': 'Perplexity',
-  'you.com': 'You.com',
-  'copilot.microsoft.com': 'Microsoft Copilot',
-  'gemini.google.com': 'Gemini',
-  'claude.ai': 'Claude',
-  'phind.com': 'Phind',
-  'kagi.com': 'Kagi',
-};
+// Search bots — build search index for AI search engines
+OAI-SearchBot, PerplexityBot, YouBot, DuckAssistant,
+GoogleVertexBot, GeminiBot, Gemini-Deep-Research
 
-// Page AI interest
-export interface PageAIInterest {
-  url: string;
-  totalCrawls: number;
-  agents: Array<{ name: string; count: number; type: AgentType }>;
-  uniqueAgents: number;
-  trend: number; // % change vs previous period
-  referralCount: number;
-}
-
-// Content AI Score
-export interface ContentAIScore {
-  url: string;
-  aiScore: number;       // 0-100
-  crawlScore: number;    // 0-40
-  citationScore: number; // 0-35
-  readinessScore: number; // 0-25
-  topAgent: string;
-  recommendations: string[];
-}
-
-// AI Referral
-export interface AIReferralSource {
-  domain: string;
-  engineName: string;
-  visits: number;
-  uniquePages: number;
-  topLandingPage: string;
-  trend: number;
-}
+// On-demand bots — real-time fetch when user asks a question
+ChatGPT-User, Claude-User, Perplexity-User
 ```
 
-#### 4.4 Tracker Changes
+### API Endpoints
 
-```typescript
-// Add to tracker: AI referral detection
-function detectAIReferral(): { isAIReferral: boolean; source: string } | null {
-  const referrer = document.referrer;
-  if (!referrer) return null;
+```
+Existing:
+POST /collect                      Public ingest (always 202)
+GET  /analytics/overview           Traffic overview
+GET  /analytics/agents             Agent breakdown
+GET  /analytics/pages              Page statistics
+GET  /analytics/timeline           Time series
 
-  try {
-    const url = new URL(referrer);
-    const domain = url.hostname.replace('www.', '');
+New (Phase 1):
+GET  /analytics/pages/ai-interest  Page-level AI crawl breakdown
+GET  /analytics/referrals          AI referral traffic sources
+GET  /analytics/referrals/pages    Landing pages from AI referrals
 
-    for (const [aiDomain, engineName] of Object.entries(AI_REFERRAL_DOMAINS)) {
-      if (domain === aiDomain || domain.endsWith(`.${aiDomain}`)) {
-        return { isAIReferral: true, source: engineName };
-      }
-    }
-  } catch {
-    // Invalid referrer URL
-  }
-  return null;
-}
-
-// Include in pageview event
-const aiReferral = detectAIReferral();
-if (aiReferral) {
-  event.meta = {
-    ...event.meta,
-    aiReferral: true,
-    aiReferralSource: aiReferral.source,
-  };
-}
+New (Phase 2):
+GET  /analytics/content-score      Content AI Score per page
+GET  /analytics/recommendations    Optimization recommendations
+POST /scan/readiness               On-demand page readiness scan
 ```
 
 ---
 
-## 5. Dashboard Pages
+## 6. Plan & Pricing
 
-### Phase 1 Dashboard
-
-```
-Sidebar:
-├── Overview          (exists — enhance with AI ratio highlight)
-├── AI Agents         (exists — add agent type badges)
-├── Content Analysis  (NEW — page-level AI interest)
-├── AI Referrals      (NEW — referral tracking)
-├── Timeline          (exists — add per-agent-type filter)
-└── Sites             (exists)
-```
-
-### Phase 2 Dashboard Additions
-
-```
-Sidebar additions:
-├── Content Scores    (NEW — AI score per page)
-├── Recommendations   (NEW — optimization suggestions)
-├── Alerts            (NEW — notification center)
-└── Reports           (NEW — export/email)
-```
-
-### Phase 3 Dashboard Additions
-
-```
-Sidebar additions:
-├── Competitors       (NEW — AI visibility comparison)
-└── Team/Agency       (NEW — multi-user management)
-```
-
----
-
-## 6. Plan Feature Matrix
-
-| Feature | Free | Starter ($19) | Pro ($49) | Business ($149) |
-|---------|------|---------------|-----------|-----------------|
+| Feature | Free | Starter $19 | Pro $49 | Business $149 |
+|---------|------|-------------|---------|---------------|
+| **Sites** | 1 | 3 | 10 | Unlimited |
+| **Events/month** | 10K | 100K | 500K | 5M |
+| **Data retention** | 7 days | 30 days | 90 days | 1 year |
+| **Rate limit** | 100/min | 500/min | 2,000/min | 10,000/min |
 | AI traffic overview | ✅ | ✅ | ✅ | ✅ |
-| Agent breakdown | ✅ | ✅ | ✅ | ✅ |
-| Agent type classification | ✅ | ✅ | ✅ | ✅ |
-| AI referral tracking | Basic | ✅ | ✅ | ✅ |
+| Agent breakdown + types | ✅ | ✅ | ✅ | ✅ |
+| AI referral tracking | Basic | Full | Full | Full |
 | Page-level AI analysis | Top 10 | Top 50 | Unlimited | Unlimited |
-| Content AI Score | ❌ | Top 20 pages | Unlimited | Unlimited |
-| Recommendations | ❌ | Basic | Advanced | Advanced |
-| Alerts | ❌ | Email weekly | Real-time | Real-time |
-| Export (CSV/PDF) | ❌ | ❌ | ✅ | ✅ |
-| API access | ❌ | ❌ | ✅ | ✅ |
-| White-label reports | ❌ | ❌ | ❌ | ✅ |
-| Multi-user team | ❌ | ❌ | 3 users | Unlimited |
-| Sites | 1 | 3 | 10 | Unlimited |
-| Data retention | 7 days | 30 days | 90 days | 1 year |
-| Events/month | 10K | 100K | 500K | 5M |
+| Content AI Score | - | Top 20 | Unlimited | Unlimited |
+| Recommendations | - | Basic | Advanced | Advanced |
+| Alerts | - | Weekly email | Real-time | Real-time |
+| Export (CSV/PDF) | - | - | ✅ | ✅ |
+| API access | - | - | ✅ | ✅ |
+| White-label reports | - | - | - | ✅ |
+| Multi-user team | - | - | 3 users | Unlimited |
 
 ---
 
-## 7. Success Criteria
-
-### Phase 1 (Month 1-2): "Does anyone care?"
-
-| Metric | Target |
-|--------|--------|
-| Free installs | 500 |
-| Dashboard DAU | 50 |
-| Hacker News/Product Hunt post | 1 launch |
-| User feedback interviews | 10 |
-| Server SDK npm downloads | 200 |
-
-### Phase 2 (Month 3-4): "Will anyone pay?"
-
-| Metric | Target |
-|--------|--------|
-| Total free users | 1,500 |
-| Paid conversions | 50 |
-| MRR | $2,000-3,000 |
-| Free→Starter conversion | 3% |
-| Churn (monthly) | <8% |
-
-### Phase 3 (Month 5-8): "Can this be a business?"
-
-| Metric | Target |
-|--------|--------|
-| Total free users | 5,000 |
-| Paid customers | 200 |
-| MRR | $8,000-15,000 |
-| ARPU | $50 |
-| LTV:CAC | >8:1 |
-
----
-
-## 8. What We're NOT Building (Kill List)
-
-- ❌ Shopify/WooCommerce app (pivot away from e-commerce focus)
-- ❌ E-commerce funnel tracking (Agent-Attributed Revenue)
-- ❌ Product readiness scoring for e-commerce
-- ❌ On-premise deployment
-- ❌ AI agent autonomous behavior tracking (market too early)
-- ❌ Content licensing marketplace
-- ❌ robots.txt management (Known Agents does this well)
-- ❌ AI blocking/control features (Cloudflare does this free)
-
----
-
-## 9. Sprint Plan — First 8 Weeks
+## 7. Roadmap — 8 Months
 
 ### Sprint 1-2 (Week 1-2): Foundation
 
 ```
 [ ] Commit server-sdk package
-[ ] Add agent_type classification to events
-[ ] Add referrer_domain to events schema
+[ ] Migration: add agent_type, referrer_domain, referrer_type to events
+[ ] Migration: create page_ai_scores, ai_referrals tables
+[ ] Implement agent type classification in event processor
 [ ] Implement AI referral detection in tracker
-[ ] Create page_ai_scores table
-[ ] Add page-level analytics query (GROUP BY url, agentName)
+[ ] New endpoint: GET /analytics/pages/ai-interest
+[ ] New endpoint: GET /analytics/referrals
+[ ] Align PLAN_LIMITS code with pricing table above
 ```
 
-### Sprint 3-4 (Week 3-4): Dashboard
+### Sprint 3-4 (Week 3-4): Dashboard + Launch Prep
 
 ```
-[ ] Build "Content Analysis" dashboard page
-[ ] Build "AI Referrals" dashboard page
-[ ] Enhance Overview with AI ratio highlight + agent type badges
-[ ] Add agent type filter to timeline
-[ ] Landing page for agentpulse.com
+[ ] Dashboard: Content Analysis page (page-level AI interest)
+[ ] Dashboard: AI Referrals page
+[ ] Enhance Overview with AI ratio, agent type badges
+[ ] Add agent type filter to Timeline
+[ ] Landing page (agentpulse.com)
+[ ] Stripe integration (Starter + Pro)
+[ ] Onboarding flow for new users
 ```
 
 ### Sprint 5-6 (Week 5-6): Launch
 
 ```
-[ ] Product Hunt launch prep
-[ ] Hacker News Show HN post
-[ ] Dev.to / Medium launch article
-[ ] Free tier polish and onboarding flow
-[ ] Stripe integration (Starter + Pro tiers)
+[ ] Product Hunt launch
+[ ] Hacker News "Show HN" post
+[ ] Dev.to / Medium launch articles
+[ ] Reddit posts (r/webdev, r/selfhosted, r/seo)
+[ ] Twitter/X threads with AI traffic insights
 ```
 
-### Sprint 7-8 (Week 7-8): Intelligence
+### Sprint 7-8 (Week 7-8): Intelligence Layer
 
 ```
-[ ] Content AI Score calculation engine
+[ ] Content AI Score calculation engine (daily cron)
 [ ] Recommendations engine (rule-based)
 [ ] Weekly email digest (free tier)
-[ ] Alert system (paid tiers)
+[ ] Real-time alert system (paid tiers)
 [ ] Laravel/PHP SDK
 ```
+
+### Month 3-4: Monetization
+
+```
+[ ] CSV/PDF export (Pro tier)
+[ ] API access documentation + key management
+[ ] Free tool: "AI Bot Traffic Scanner" (scan any URL)
+[ ] Blog: weekly AI traffic insights
+```
+
+### Month 5-8: Platform Expansion
+
+```
+[ ] WordPress plugin
+[ ] Nginx log parser
+[ ] Python/Django middleware
+[ ] Agency multi-site management
+[ ] White-label reports
+[ ] Team member access controls
+```
+
+---
+
+## 8. Success Metrics
+
+| Phase | Timeframe | Key Metric | Target |
+|-------|-----------|-----------|--------|
+| 1 | Month 1-2 | Free installs | 500 |
+| 1 | Month 1-2 | Dashboard DAU | 50 |
+| 1 | Month 1-2 | npm downloads (server-sdk) | 200 |
+| 2 | Month 3-4 | Paid customers | 50 |
+| 2 | Month 3-4 | MRR | $2,000-3,000 |
+| 2 | Month 3-4 | Monthly churn | <8% |
+| 3 | Month 5-8 | Total free users | 5,000 |
+| 3 | Month 5-8 | Paid customers | 200 |
+| 3 | Month 5-8 | MRR | $8,000-15,000 |
+
+### Pivot Signals
+
+| Signal | When | Action |
+|--------|------|--------|
+| Free installs < 200 | Month 2 | Change marketing, not product |
+| Paid conversion < 1.5% | Month 4 | Pivot to Content AI Score standalone |
+| Monthly churn > 15% | Month 4+ | Product isn't retaining — investigate |
+| MRR < $2K | Month 6 | Evaluate pivot to B2B API or AEO tool |
+
+---
+
+## 9. What We're NOT Building
+
+| Feature | Reason |
+|---------|--------|
+| Bot blocking/control | Cloudflare does this free. Not our market. |
+| robots.txt management | Known Agents does this well. Not differentiated. |
+| E-commerce funnel tracking | Requires Shopify expertise we don't have. Market unvalidated. |
+| Autonomous agent tracking | Market doesn't exist yet. Too early to build. |
+| On-premise deployment | Too early. Focus on hosted SaaS. |
+| Content licensing marketplace | Complex, requires legal expertise. |
 
 ---
 
@@ -686,14 +621,10 @@ Sidebar additions:
 
 | Decision | Choice | Reason |
 |----------|--------|--------|
-| Keep PostgreSQL (not TimescaleDB) | PostgreSQL | Good enough for current scale, partitioning handles growth |
-| Keep BullMQ queue | BullMQ | Already built, handles burst load well |
-| Content AI Score = computed daily | Cron job | Avoids real-time computation overhead |
-| Readiness scan = on-demand API | Headless fetch | Don't need persistent crawling infrastructure |
-| AI referral detection = client-side | Tracker | `document.referrer` available in browser, no server needed |
-| Agent type = lookup table | Static map | Fast, deterministic, easy to update |
-
----
-
-*This spec replaces SPEC-v2.md. The e-commerce pivot is deprecated.
-Focus: AI Traffic Intelligence for developers & SMBs.*
+| NestJS + Fastify | Not Express | Ingest API needs high throughput |
+| BullMQ queue | Not direct DB write | Don't block ingest response |
+| PostgreSQL | Not TimescaleDB | Good enough at current scale, partitioning handles growth |
+| Content AI Score computed daily | Cron, not real-time | Avoids computation overhead per event |
+| AI referral detection client-side | Tracker | `document.referrer` available in browser |
+| Agent type via lookup table | Static map | Fast, deterministic, easy to update |
+| Prisma ORM | Not raw SQL everywhere | Type-safe by default, raw SQL only for analytics aggregation |

@@ -1,9 +1,7 @@
 # CLAUDE.md — AI Assistant Context
 
 > This file helps AI assistants (Claude, Cursor, Copilot...) quickly understand the project.
-> **Version:** v2 (aligned with SPEC-v3, Business Model v2)
 > **Updated:** 2026-02-24
-> **Previous:** docs/CLAUDE-v1.md
 
 ---
 
@@ -15,7 +13,7 @@ Analytics platform that helps developers and website owners understand how AI bo
 
 > **Product spec:** [docs/SPEC-v3.md](docs/SPEC-v3.md)
 > **Business model:** [docs/BUSINESS-MODEL-v2.md](docs/BUSINESS-MODEL-v2.md)
-> **Archived:** docs/SPEC.md (v1), docs/SPEC-v2.md (v2 e-commerce), docs/CLAUDE-v1.md, docs/PROJECT-v1.md
+> **Archived specs:** docs/SPEC.md (v1), docs/SPEC-v2.md (v2)
 
 ---
 
@@ -67,14 +65,7 @@ packages/
 ├── types/             Shared TypeScript types (@agent-analytics/types)
 └── server-sdk/        Server-side middleware (Express, Fastify, Next.js)
 
-docs/
-├── SPEC-v3.md         Product specification (ACTIVE)
-├── BUSINESS-MODEL-v2.md Business model (ACTIVE)
-├── SPEC-v2.md         E-commerce pivot spec (DEPRECATED)
-├── SPEC.md            Original publisher spec (ARCHIVED)
-├── BUSINESS-MODEL.md  E-commerce business model (DEPRECATED)
-├── CLAUDE-v1.md       Previous CLAUDE.md backup
-└── PROJECT-v1.md      Previous PROJECT.md backup
+docs/                  Specs and business docs
 ```
 
 ---
@@ -138,7 +129,7 @@ Business    $149/mo    ∞      5,000,000  10,000    1 year
 ```
 
 Note: Code currently has `free/starter/pro/enterprise` tiers with different limits.
-**TODO:** Align `packages/types/src/site.ts` PLAN_LIMITS with v3 pricing above.
+**TODO:** Align `packages/types/src/site.ts` PLAN_LIMITS with pricing above.
 
 ### Feature Gating by Plan
 
@@ -175,7 +166,6 @@ Threshold:                   is_agent = true when confidence >= 50
 ### Agent Type Classification
 
 ```typescript
-// Classify agents by their purpose
 type AgentType = 'training' | 'search' | 'on_demand' | 'unknown';
 
 Training bots:    GPTBot, ClaudeBot, Google-Extended, ByteSpider, Meta-ExternalAgent,
@@ -188,7 +178,6 @@ On-demand bots:   ChatGPT-User, Claude-User, Perplexity-User
 ### AI Referral Domains
 
 ```typescript
-// Track referral traffic from these AI platforms
 const AI_REFERRAL_DOMAINS = {
   'chatgpt.com': 'ChatGPT',
   'chat.openai.com': 'ChatGPT',
@@ -234,7 +223,6 @@ export const KNOWN_AGENTS = {
 
 ### POST /collect (public — ingest)
 ```typescript
-// Request body
 {
   siteId: string;
   url: string;
@@ -243,7 +231,7 @@ export const KNOWN_AGENTS = {
   timestamp: number;
   source?: 'tracker' | 'server';
   meta?: Record<string, unknown>;
-  // NEW in v3 (via meta or dedicated fields):
+  // AI referral fields (via meta):
   // meta.aiReferral?: boolean
   // meta.aiReferralSource?: string
   // meta.referrerDomain?: string
@@ -255,7 +243,6 @@ export const KNOWN_AGENTS = {
 ### GET /analytics/overview (authenticated)
 ```typescript
 // Query: { siteId, range: '1d' | '7d' | '30d' }
-// Response:
 {
   data: {
     totalRequests: number;
@@ -269,11 +256,14 @@ export const KNOWN_AGENTS = {
 }
 ```
 
-### GET /analytics/pages (authenticated — exists)
-### GET /analytics/agents (authenticated — exists)
-### GET /analytics/timeline (authenticated — exists)
+### Other existing endpoints
+```
+GET /analytics/pages       Page statistics
+GET /analytics/agents      Agent breakdown
+GET /analytics/timeline    Time series data
+```
 
-### NEW endpoints needed (v3):
+### New endpoints (to build)
 ```
 GET /analytics/pages/ai-interest    Page-level AI crawl breakdown
 GET /analytics/referrals            AI referral traffic sources
@@ -313,65 +303,15 @@ Worker: ProcessEventJob
 ## Environment Variables
 
 ```env
-# Database
 DATABASE_URL=postgresql://postgres:postgres@localhost:5437/agent_analytics
-
-# Redis
 REDIS_URL=redis://localhost:6381
-
-# Auth
 JWT_SECRET=your-secret-key-change-in-production
 JWT_EXPIRES_IN=7d
-
-# Stripe (TODO: implement)
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
-
-# App
 APP_URL=http://localhost:3000
 TRACKER_CDN_URL=http://localhost:3002/tracker.js
 NODE_ENV=development
-```
-
----
-
-## What NOT to Do
-
-- Do NOT use Express adapter — always use Fastify
-- Do NOT query DB in Controller — use Services
-- Do NOT use `process.env` directly — use `ConfigService`
-- Do NOT block ingest response — everything must go through queue
-- Do NOT store PII of end users — only aggregate data
-- Do NOT use `any` in TypeScript
-- Do NOT create index migrations without `CONCURRENTLY`
-- Do NOT hardcode agent list — import from `@agent-analytics/types`
-- Do NOT build e-commerce/Shopify features — SPEC-v2 is deprecated
-- Do NOT build robots.txt management — Known Agents does this, not our focus
-- Do NOT build blocking/control features — Cloudflare does this free, not our focus
-- Do NOT compete on detection — compete on analytics and intelligence
-
----
-
-## Useful Commands
-
-```bash
-# Start dev
-pnpm dev                              # Run all apps
-
-# Database
-npx prisma migrate dev --name <name>  # Create new migration
-npx prisma studio                     # GUI to browse database
-
-# Docker
-docker compose up -d                  # Start PostgreSQL + Redis
-
-# Build
-pnpm build                            # Build all packages
-pnpm clean                            # Clean all dist/
-
-# Test
-pnpm test                             # Unit tests
-pnpm test:e2e                         # E2E tests
 ```
 
 ---
@@ -386,17 +326,31 @@ Tracker:   CF R2    → https://pub-734a26198d39470eb9a7702060cae3a1.r2.dev
 
 ---
 
-## Decisions Log
+## What NOT to Do
 
-| Date | Decision | Reason |
-|------|----------|--------|
-| 2026-02-22 | NestJS instead of Laravel | Team prefers JS/TS, full JS/TS stack |
-| 2026-02-22 | Fastify adapter | Ingest API needs high throughput |
-| 2026-02-22 | BullMQ for async processing | Don't block ingest response |
-| 2026-02-22 | PostgreSQL partition by timestamp | Events table grows large, range queries common |
-| 2026-02-22 | Turborepo monorepo | Share types between tracker, API, dashboard |
-| 2026-02-24 | **Deprecate e-commerce pivot (v2)** | 0% code built, team lacks Shopify expertise, market unvalidated |
-| 2026-02-24 | **Adopt "AI Traffic Intelligence" (v3)** | 70% code already built, validated by Cloudflare/Profound/Known Agents market |
-| 2026-02-24 | **Compete on analytics, not detection** | Detection is free (Cloudflare). Intelligence is the gap at SMB/dev tier. |
-| 2026-02-24 | **Price lower: $19/$49/$149** | Can't charge premium when Cloudflare gives detection free. Value is in analytics. |
-| 2026-02-24 | **Server SDK as key differentiator** | Detects bots at server level (JS snippet misses most crawlers). Multi-platform. |
+- Do NOT use Express adapter — always use Fastify
+- Do NOT query DB in Controller — use Services
+- Do NOT use `process.env` directly — use `ConfigService`
+- Do NOT block ingest response — everything must go through queue
+- Do NOT store PII of end users — only aggregate data
+- Do NOT use `any` in TypeScript
+- Do NOT create index migrations without `CONCURRENTLY`
+- Do NOT hardcode agent list — import from `@agent-analytics/types`
+- Do NOT build robots.txt management — Known Agents does this, not our focus
+- Do NOT build blocking/control features — Cloudflare does this free, not our focus
+- Do NOT compete on detection — compete on analytics and intelligence
+
+---
+
+## Useful Commands
+
+```bash
+pnpm dev                              # Run all apps
+npx prisma migrate dev --name <name>  # Create new migration
+npx prisma studio                     # GUI to browse database
+docker compose up -d                  # Start PostgreSQL + Redis
+pnpm build                            # Build all packages
+pnpm clean                            # Clean all dist/
+pnpm test                             # Unit tests
+pnpm test:e2e                         # E2E tests
+```

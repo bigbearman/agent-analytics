@@ -1,78 +1,112 @@
-# AgentPulse — Business Model v2
+# AgentPulse — Business Model
 
-> **Version:** 2.0
 > **Date:** 2026-02-24
 > **Status:** Active
-> **Previous:** BUSINESS-MODEL.md (e-commerce focused — deprecated)
 > **Companion:** SPEC-v3.md
 
 ---
 
-## What Changed from v1?
+## 1. What Is AgentPulse?
 
-| | Business Model v1 | Business Model v2 |
-|---|---|---|
-| **Target** | E-commerce stores (Shopify) | Developers, content sites, SMBs |
-| **Revenue** | Shopify App subscription | Direct SaaS subscription |
-| **Pricing** | $49-$399/mo | $19-$149/mo |
-| **Y1 MRR projection** | $48K (fantasy) | $8-12K (realistic) |
-| **Break-even** | Month 8 (unlikely) | Month 10-14 (realistic) |
-| **Team required** | Need Shopify expertise | Current team sufficient |
-| **Code readiness** | 0% built | 70% built |
-| **GTM** | Shopify App Store | Dev communities + content marketing |
+**AI traffic intelligence platform for developers and SMBs.**
+
+Website owners install a JS snippet or server SDK to understand how AI bots interact with their content — which pages AI crawls most, which AI engines cite them, and how to optimize for AI visibility.
+
+**One-liner:** Google Analytics for AI traffic.
 
 ---
 
-## 1. Market Sizing — Honest Numbers
+## 2. Market Analysis
 
-### TAM (Total Addressable Market)
+### 2.1 Market Size
 
-Every website with meaningful traffic could use AI traffic analytics.
+| Level | Scope | Size |
+|-------|-------|------|
+| **TAM** | All websites with professional analytics tracking (~5M sites × $50/yr avg) | $250M/year |
+| **SAM** | English-speaking sites where owner knows about AI traffic (~3.5M) | $140M/year |
+| **SOM Year 1** | Realistic first-year capture (60-150 paid at $35 ARPU) | $25K-$63K ARR |
+
+This is a **new category**. The AI agent market is $7.6B (2025) → projected $50B+ by 2030 (MarketsandMarkets), but "AI traffic analytics" is a niche within that. We don't claim the whole market — we claim the analytics tooling layer.
+
+### 2.2 Competitive Landscape
+
+#### Direct Competitors
+
+| Competitor | Description | Pricing | Strength | Weakness |
+|-----------|-------------|---------|----------|----------|
+| **Profound** | Full AI traffic intelligence. $58.5M raised (Sequoia). Serves Fortune 500 (Ramp, MongoDB, DocuSign). | Enterprise-only. Must "apply for access." | Best data: proprietary CDN partnerships (Cloudflare, Vercel, Fastly, Akamai). 3 datasets: prompts to 10 AI engines daily, CDN logs (billions), 130M conversations. | No SMB/dev tier. No self-serve. No public pricing. Excludes 99% of market. |
+| **Known Agents (Dark Visitors)** | WordPress plugin + bot database. Tracks AI crawlers, manages robots.txt. | Free (most users). Paid tiers available. | Largest bot database (industry "gold standard"). WordPress plugin with thousands of installs. Strong community. | WordPress-only. Basic tracking — no analytics, no scores, no referral tracking. No developer SDK. |
+| **aibottracker.com** | Simple free tool. 2,000+ sites using it. | Free | Easy setup. Low barrier. | Very basic. No analytics depth. No paid tier. |
+
+#### Platform Threats (Free Built-in Features)
+
+| Platform | Feature | Coverage | Limitation |
+|----------|---------|----------|------------|
+| **Cloudflare AI Crawl Control** | Detect + block AI bots. Dashboard shows crawler activity. Free for all Cloudflare users. "Pay per crawl" in beta. | ~20% of all websites (massive reach) | Detection only. No page-level analysis. No AI scores. No referral tracking. No cross-platform. |
+| **Vercel BotID** | Bot detection + analytics dashboard. Built into Vercel platform. | Vercel-hosted sites only | Platform-locked. No self-hosted support. Pro/Enterprise plans only. |
+
+#### Adjacent Market (AI Visibility / GEO / AEO Tools)
+
+These tools answer "What is AI saying about my brand?" — different from our question "What is AI doing on my website?"
+
+| Tool | Pricing | Focus |
+|------|---------|-------|
+| **Otterly AI** | $29-$989/mo | Brand monitoring, GEO audit, prompt tracking |
+| **Peec AI** | €89-€499/mo | Multi-engine share-of-voice, competitor tracking |
+| **AthenaHQ** | ~$295/mo | Deep GEO analysis, action center |
+| **Rankscale** | $20/mo | Daily basics, budget option |
+| **SE Ranking** | Suite-based | AI Visibility as add-on to SEO suite |
+
+These are potential **partners** (integrate AI traffic data into their tools), not direct competitors.
+
+#### Internal AI Agent Observability (Different Market)
+
+Langfuse, LangSmith, Arize, Datadog LLM, AgentOps — these track agents you BUILD, not agents visiting your WEBSITE. Different market entirely.
+
+### 2.3 Where We Fit
 
 ```
-~200M active websites globally
-~20M with >1000 visits/month (relevant traffic)
-~5M run by professionals who track analytics
+                 Enterprise         Mid-Market          SMB/Dev
+                 ($1000+/mo)       ($100-500/mo)       ($0-149/mo)
+                ┌───────────────┬──────────────────┬─────────────────┐
+CDN/Edge        │ Profound      │ Botify           │                 │
+server logs     │               │ seoClarity       │  No solution    │
+                ├───────────────┼──────────────────┼─────────────────┤
+Platform        │ Cloudflare    │ Cloudflare       │ Cloudflare FREE │
+built-in        │ Bot Mgmt      │ AI Crawl Control │ (detect only)   │
+                │ Vercel BotID  │                  │                 │
+                ├───────────────┼──────────────────┼─────────────────┤
+Standalone      │               │                  │ Known Agents    │
+tracking        │               │                  │ aibottracker    │
+                ├───────────────┼──────────────────┼─────────────────┤
+Analytics +     │ Profound      │                  │                 │
+Intelligence    │               │  NO SOLUTION     │  NO SOLUTION    │
+                │               │                  │  ← AgentPulse   │
+                └───────────────┴──────────────────┴─────────────────┘
 ```
 
-TAM = 5M websites × $50/year average = **$250M/year**
+**Our position:** Analytics + intelligence layer for SMB/dev tier — the gap nobody fills.
 
-But this is a new category. Realistic ceiling is much lower.
+### 2.4 Competitive Advantages
 
-### SAM (Serviceable Addressable Market)
+| Advantage | vs Profound | vs Cloudflare | vs Known Agents |
+|-----------|-----------|---------------|-----------------|
+| **Price** | $0-149 vs enterprise-only | Free tier matches; paid adds analytics | Similar free; paid adds intelligence |
+| **Multi-platform** | Both multi-platform | Cloudflare-only | WordPress-only |
+| **Page-level analysis** | Profound has this | Cloudflare doesn't | Known Agents doesn't |
+| **AI referral tracking** | Profound has this | Cloudflare doesn't | Known Agents doesn't |
+| **Content AI Score** | Profound has similar | Cloudflare doesn't | Known Agents doesn't |
+| **Developer SDK** | Profound has CDN integrations | N/A | Known Agents doesn't |
+| **Self-hosted support** | Profound: no | Cloudflare: no | Known Agents: WordPress only |
+| **Data depth** | Profound has 3 proprietary datasets. We don't. | Cloudflare sees all traffic. We don't. | We have more depth. |
 
-Websites where owner:
-1. Knows AI traffic exists (growing awareness)
-2. Can install a tracking snippet or SDK
-3. Reads English (initial market)
-
-```
-~500K developer blogs/docs sites
-~2M content/media sites
-~1M marketing/SEO-aware businesses
-= ~3.5M potential sites
-```
-
-SAM = 3.5M × $40/year = **$140M/year**
-
-### SOM (Serviceable Obtainable Market) — Year 1
-
-Realistic first-year capture:
-
-```
-Free installs:         2,000-5,000 (from dev community + content marketing)
-Free → Paid conversion: 2-4%
-Paid customers:        60-150
-ARPU:                  $35/month (mix of Starter + Pro)
-```
-
-SOM Year 1 = **$25K-$63K ARR** ($2-5K MRR)
+**Honest weakness:** Profound and Cloudflare have data advantages we can't match. We win on **accessibility** (price + multi-platform + developer UX), not on raw data power.
 
 ---
 
-## 2. Revenue Model: Freemium SaaS
+## 3. Revenue Model
 
-### 2.1 Pricing Tiers
+### 3.1 Freemium SaaS Subscription
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -93,136 +127,134 @@ SOM Year 1 = **$25K-$63K ARR** ($2-5K MRR)
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Pricing Rationale
+### 3.2 Pricing Rationale
 
-| Factor | Impact on Price |
-|--------|----------------|
-| Cloudflare AI Crawl Control is free | Can't charge for basic detection |
-| Known Agents free tier covers most needs | Free tier must be generous |
-| Profound enterprise = $1000s/mo | Big gap between free and enterprise |
-| Dev tools typically $10-50/mo | $19 Starter is competitive |
-| Analytics tools (Plausible, Fathom) = $9-19/mo | $49 Pro reasonable for more features |
-| SEO tools (Ahrefs, SEMrush) = $99-449/mo | $149 Business for agencies is affordable |
+| Factor | Price Impact | Source |
+|--------|-------------|--------|
+| Cloudflare AI Crawl Control = free | Can't charge for basic detection. Free tier must include detection. | Cloudflare gives it to ~20% of all sites |
+| Known Agents free tier covers most needs | Free tier must be generous enough to compete | Thousands of WordPress installs on free |
+| Profound = $1000s+/mo enterprise-only | Huge gap between free and enterprise = opportunity | Must "apply for access" |
+| Dev tools (Plausible, Fathom) = $9-19/mo | $19 Starter aligns with developer tool pricing | Developer willingness to pay |
+| Analytics tools (Mixpanel, Amplitude) = $0-99/mo | $49 Pro aligns with analytics tool tier | Marketing/SEO team budgets |
+| SEO tools (Ahrefs, SEMrush) = $99-449/mo | $149 Business is affordable for agencies already paying $100s | Agency budget benchmark |
 
-### Annual Discount
+### 3.3 Annual Discount
 
-20% off annual plans (pay 10 months, get 12):
+20% off annual plans (pay 10, get 12):
 - Starter: $190/year ($15.83/mo effective)
 - Pro: $490/year ($40.83/mo effective)
 - Business: $1,490/year ($124.17/mo effective)
 
+### 3.4 Upgrade Triggers
+
+| Transition | Trigger | Timeline |
+|-----------|---------|----------|
+| Free → Starter | Hit 10K event limit or need >7 days history | 2-4 weeks after install |
+| Starter → Pro | Want Content AI Scores, API access, exports | 2-3 months after Starter |
+| Pro → Business | Agency needs white-label + team for clients | Often direct signup |
+
 ---
 
-## 3. Unit Economics
+## 4. Unit Economics
 
-### Cost Per Customer
-
-```
-Infrastructure cost per free user:     ~$0.05/month
-  - PostgreSQL storage: $0.02
-  - Redis cache: $0.01
-  - BullMQ processing: $0.01
-  - Bandwidth: $0.01
-
-Infrastructure cost per paid user:     ~$0.50/month (10x more events)
-  - PostgreSQL storage: $0.20
-  - Redis cache: $0.10
-  - BullMQ processing: $0.10
-  - Bandwidth: $0.10
-
-Stripe fees per paid user:             ~3% = $1.05/month (at $35 ARPU)
-```
-
-### ARPU Projection
+### 4.1 Cost Structure
 
 ```
-Customer mix assumption (steady state):
-  60% Starter ($19)  → contributes $11.40
-  30% Pro ($49)      → contributes $14.70
-  10% Business ($149)→ contributes $14.90
+Per free user:           ~$0.05/month
+  PostgreSQL storage:    $0.02
+  Redis cache:           $0.01
+  BullMQ processing:     $0.01
+  Bandwidth:             $0.01
+
+Per paid user:           ~$0.50/month (10x more events)
+  PostgreSQL storage:    $0.20
+  Redis cache:           $0.10
+  BullMQ processing:     $0.10
+  Bandwidth:             $0.10
+
+Stripe fees:             ~3% of payment
+```
+
+### 4.2 ARPU
+
+```
+Customer mix (steady state):
+  60% Starter ($19)   → contributes $11.40
+  30% Pro ($49)       → contributes $14.70
+  10% Business ($149) → contributes $14.90
 
 Blended ARPU = ~$41/month
-
-With annual discounts (30% annual):
-  Effective ARPU = ~$37/month
+With annual discounts (30% on annual): ~$37/month effective
 ```
 
-### Unit Economics Summary
+### 4.3 Key Metrics
 
 ```
 ARPU:                $37/month
 COGS per customer:   $1.55/month (infra + Stripe)
-Gross margin:        $35.45/month (95.8%)
+Gross margin:        95.8%
 
 CAC (blended):       $30
-  - Organic/SEO:     $0 (content marketing)
-  - Product Hunt:    $5 (one-time)
-  - Dev community:   $10 (time investment)
-  - Paid ads:        $80 (small experiments)
-  - Blended:         ~$30
+  Organic/SEO:       $0
+  Product Hunt:      $5
+  Dev community:     $10
+  Paid ads:          $80
+  Blended average:   ~$30
 
-Customer lifetime:   14 months (churn 7%/month)
+Customer lifetime:   14 months (at 7% monthly churn)
 LTV:                 $37 × 14 = $518
-LTV:CAC:             17:1 ✅
+LTV:CAC:             17:1
 
-Payback period:      < 1 month (ARPU > CAC, organic-heavy)
+Payback period:      < 1 month
 ```
 
-### Why These Numbers Are Conservative
+### 4.4 Benchmarks vs. Industry
 
-| v1 Assumption | v2 Assumption | Reason |
-|---|---|---|
-| CAC $25 | CAC $30 | Some paid experiments needed |
-| ARPU $79 | ARPU $37 | Lower pricing, more Starter mix |
-| Churn 5%/mo | Churn 7%/mo | Dev tools churn higher |
-| LTV $960 | LTV $518 | Lower price × shorter lifetime |
-| LTV:CAC 19:1 | LTV:CAC 17:1 | Still healthy |
-| Conversion 4% | Conversion 3% | Free alternatives exist |
+| Metric | AgentPulse | Healthy SaaS | Notes |
+|--------|-----------|-------------|-------|
+| Gross margin | 95.8% | >70% | Excellent — low infra cost |
+| LTV:CAC | 17:1 | >3:1 | Strong — organic-heavy acquisition |
+| Monthly churn | 7% (est.) | <5% ideal | Higher than ideal — dev tools churn more |
+| Payback period | <1 month | <12 months | Excellent — organic acquisition |
 
 ---
 
-## 4. Fixed Costs & Break-Even
+## 5. Financial Projections
 
-### Monthly Fixed Costs
+### 5.1 Fixed Costs by Phase
 
 ```
 Phase 1 (Month 1-4): Bootstrap
 ├── Infrastructure (Railway + Vercel + R2):  $50/month
 ├── Domain + email:                          $20/month
 ├── Tools (GitHub, analytics):               $30/month
-└── TOTAL:                                   $100/month
-    (Team works on equity/side-project, no salaries)
+└── TOTAL: $100/month (team works on equity, no salaries)
 
 Phase 2 (Month 5-8): Early Revenue
 ├── Infrastructure:                          $200/month
 ├── Tools + services:                        $100/month
 ├── Part-time contractor (frontend):         $2,000/month
-└── TOTAL:                                   $2,300/month
+└── TOTAL: $2,300/month
 
 Phase 3 (Month 9-12): Growth
 ├── Infrastructure:                          $500/month
 ├── Tools + services:                        $200/month
-├── 1 full-time dev:                         $4,000/month
+├── 1 full-time developer:                   $4,000/month
 ├── Marketing budget:                        $500/month
-└── TOTAL:                                   $5,200/month
+└── TOTAL: $5,200/month
 ```
 
-### Break-Even Analysis
+### 5.2 Break-Even Analysis
 
 ```
-Phase 1 break-even: $100 / $35.45 margin = 3 paid customers
-Phase 2 break-even: $2,300 / $35.45 = 65 paid customers
-Phase 3 break-even: $5,200 / $35.45 = 147 paid customers
+Phase 1: $100 / $35.45 margin  =   3 paid customers
+Phase 2: $2,300 / $35.45       =  65 paid customers
+Phase 3: $5,200 / $35.45       = 147 paid customers
 ```
 
-At Phase 2 (month 5-8), need ~65 paid customers to break even.
-At 3% conversion of free users: need ~2,200 free users → achievable by month 8-10.
+### 5.3 Revenue Projections — 3 Scenarios
 
----
-
-## 5. Financial Projection — 18 Months
-
-### Conservative Scenario
+**Conservative (base case):**
 
 ```
          Free    Paid   MRR      Costs    Profit   Cum.Profit
@@ -238,12 +270,11 @@ Month 9: 2,800    87    $3,219   $5,200   -$1,981  -$2,997
 Month10: 3,400   105    $3,885   $5,200   -$1,315  -$4,312
 Month11: 4,000   125    $4,625   $5,200   -$575    -$4,887
 Month12: 4,800   148    $5,476   $5,200   +$276    -$4,611
-
 Month15: 7,000   220    $8,140   $5,200   +$2,940  -$1,451
 Month18:10,000   320   $11,840   $5,200   +$6,640  +$8,769
 ```
 
-### Optimistic Scenario (viral moment / strong Product Hunt)
+**Optimistic (viral moment / strong Product Hunt):**
 
 ```
          Free    Paid   MRR
@@ -252,7 +283,7 @@ Month12: 12,000  380   $14,060
 Month18: 25,000  800   $29,600
 ```
 
-### Pessimistic Scenario (slow growth, high churn)
+**Pessimistic (slow growth, high churn):**
 
 ```
          Free    Paid   MRR
@@ -261,37 +292,47 @@ Month12: 2,000    48    $1,776
 Month18: 4,000    80    $2,960
 ```
 
+### 5.4 Key Milestones
+
+| Milestone | Conservative | Optimistic |
+|-----------|-------------|------------|
+| First paid customer | Month 1 | Month 1 |
+| $1K MRR | Month 5 | Month 3 |
+| Phase 2 break-even (65 paid) | Month 8 | Month 5 |
+| $5K MRR | Month 12 | Month 7 |
+| Phase 3 break-even (147 paid) | Month 12 | Month 8 |
+| $10K MRR | Month 16 | Month 10 |
+
 ---
 
 ## 6. Go-to-Market Strategy
 
-### Phase 1: Developer-First Launch (Month 1-3)
+### 6.1 Phase 1: Developer-First Launch (Month 1-3)
 
-**Channel: Dev communities**
+**Why developers first:**
+- Install snippets/SDKs themselves (no sales team needed)
+- Share tools organically (Twitter, blogs, GitHub stars)
+- Low CAC ($0-10 for organic)
+- Technical enough to see value immediately
 
-```
-Week 1-2: Ship MVP + landing page
-Week 3:   "Show HN" post on Hacker News
-Week 4:   Product Hunt launch
-Week 5-6: Dev.to + Medium articles:
-          "I built an open-source alternative to Cloudflare AI Crawl Control"
-          "How to track AI bot traffic on your website"
-          "What I learned analyzing AI crawler behavior on my blog"
-Week 7-8: Reddit (r/webdev, r/selfhosted, r/seo)
-          Twitter/X threads about AI traffic data
-```
+**Channels:**
 
-**Why dev-first:**
-- Developers install snippets/SDKs themselves
-- Developers share tools with each other
-- Developer blog posts = free marketing
-- Low CAC ($0-10 organic)
+| Week | Action | Expected Impact |
+|------|--------|----------------|
+| 1-2 | Ship MVP + landing page (agentpulse.com) | Foundation |
+| 3 | Hacker News "Show HN" post | 50-200 installs if front-page |
+| 4 | Product Hunt launch | 100-500 installs if top 5 |
+| 5-6 | Dev.to + Medium articles about AI traffic data | SEO seeds + community |
+| 7-8 | Reddit (r/webdev, r/selfhosted, r/seo) + Twitter threads | Community reach |
 
-### Phase 2: Content Marketing + SEO (Month 3-6)
+**Content angles:**
+- "I analyzed AI crawler behavior on 100 websites — here's what I found"
+- "How to see which AI bots are crawling your site (and what they want)"
+- "GPTBot vs ClaudeBot: which AI engine cares about your content more?"
 
-**Channel: Search traffic**
+### 6.2 Phase 2: Content Marketing + SEO (Month 3-6)
 
-Target keywords (low competition, growing search volume):
+**Target keywords** (low competition, growing search volume):
 ```
 "AI bot traffic analytics"
 "track AI crawlers on website"
@@ -303,253 +344,154 @@ Target keywords (low competition, growing search volume):
 "llms.txt generator"
 ```
 
-Content:
+**Content strategy:**
 - Weekly blog post with real AI traffic data/insights
-- Free tools: "AI Bot Traffic Scanner" (scan any URL)
-- Monthly "State of AI Traffic" report (builds authority)
+- **Free tool: "AI Bot Traffic Scanner"** — scan any URL, get instant report. Lead gen machine.
+- Monthly "State of AI Traffic" report — builds authority, gets press mentions
+- Comparison pages: "AgentPulse vs Cloudflare AI Crawl Control", "AgentPulse vs Known Agents"
 
-### Phase 3: SEO/Agency Partnerships (Month 6-12)
-
-**Channel: Partnerships**
+### 6.3 Phase 3: SEO/Agency Partnerships (Month 6-12)
 
 - Partner with SEO agencies — they need AI traffic reports for clients
-- Integrate with existing SEO tools (Ahrefs, SEMrush via API)
-- White-label option drives Business tier adoption
-- Conference talks about AI traffic trends
+- White-label drives Business tier ($149/mo) adoption
+- Integration partnerships with SEO tools (Ahrefs, SEMrush API integration)
+- Conference talks/webinars about AI traffic trends
 
-### Phase 4: Paid Acquisition (Month 9+, only if unit economics proven)
+### 6.4 Phase 4: Paid Acquisition (Month 9+)
 
-**Channel: Ads**
-
+Only after unit economics validated at LTV:CAC > 5:1:
 - Google Ads for high-intent keywords
-- Sponsorships on SEO/marketing newsletters
-- Only after LTV:CAC validated at >5:1
+- Newsletter sponsorships (TLDR, Bytes, SEO newsletters)
+- Retargeting free users who didn't convert
 
 ---
 
-## 7. Customer Journey
-
-### Free User → Starter ($19/mo)
-
-```
-Trigger:  User hits 10K event limit OR wants more than 7 days history
-Timeline: Usually within 2-4 weeks of install
-Path:     Free → sees "Upgrade for 30-day history" → Starter
-```
-
-### Starter → Pro ($49/mo)
-
-```
-Trigger:  User wants Content AI Scores, API access, or exports
-Timeline: Usually 2-3 months after Starter
-Path:     Starter → sees score previews → wants full scores → Pro
-```
-
-### Pro → Business ($149/mo)
-
-```
-Trigger:  Agency managing multiple client sites
-Timeline: Usually agencies sign up directly at Pro/Business
-Path:     Agency trial on Pro → needs white-label + team → Business
-```
-
----
-
-## 8. Key Metrics & North Star
+## 7. Key Metrics & North Star
 
 ### North Star Metric
 
 **Active Sites with AI Traffic Detected**
 
-Why: Measures real value delivery. A site actively detecting AI traffic = engaged user.
+Measures real value delivery. A site actively detecting AI traffic = engaged user.
 
-### Growth Metrics
+### Dashboard
 
-| Metric | Target M3 | Target M6 | Target M12 |
-|--------|-----------|-----------|------------|
-| Free installs (cumulative) | 300 | 1,300 | 4,800 |
-| Active sites (weekly) | 100 | 400 | 1,500 |
-| Paid customers | 9 | 42 | 148 |
-| MRR | $333 | $1,554 | $5,476 |
-| Free → Paid conversion | 3% | 3.2% | 3.1% |
-
-### Health Metrics
-
-| Metric | Target |
-|--------|--------|
-| Monthly churn | <7% |
-| NPS | >40 |
-| Time to value (first AI detection) | <5 minutes |
-| Support tickets/customer/month | <0.5 |
-| Uptime | 99.5% |
-
-### Unit Economics Metrics
-
-| Metric | Target |
-|--------|--------|
-| ARPU | $35-40/month |
-| CAC (blended) | <$30 |
-| LTV | >$400 |
-| LTV:CAC | >10:1 |
-| Gross margin | >90% |
-| Payback period | <2 months |
+| Category | Metric | Target M3 | Target M6 | Target M12 |
+|----------|--------|-----------|-----------|------------|
+| **Growth** | Free installs | 300 | 1,300 | 4,800 |
+| **Growth** | Active sites (weekly) | 100 | 400 | 1,500 |
+| **Revenue** | Paid customers | 9 | 42 | 148 |
+| **Revenue** | MRR | $333 | $1,554 | $5,476 |
+| **Conversion** | Free → Paid | 3% | 3.2% | 3.1% |
+| **Health** | Monthly churn | <10% | <8% | <7% |
+| **Health** | Time to value | <5 min | <5 min | <3 min |
+| **Health** | NPS | >30 | >40 | >50 |
+| **Economics** | ARPU | $37 | $37 | $37 |
+| **Economics** | CAC | <$30 | <$30 | <$30 |
+| **Economics** | LTV:CAC | >10:1 | >12:1 | >15:1 |
 
 ---
 
-## 9. Competitive Moat — What's Defensible?
+## 8. Competitive Moat Strategy
 
-### Short-term moats (6-12 months)
+### Short-term (6-12 months)
 
-1. **Data network effect:** More sites → more AI traffic data → better benchmarks → attracts more sites
-2. **Analytics depth:** Cloudflare/Known Agents focus on detect+block. We focus on analyze+optimize. Different product.
-3. **Multi-platform SDK:** Works on any hosting. Not locked to one platform.
-4. **Speed to market:** 70% built. Can ship in weeks while competitors would need months.
+1. **Speed to market** — Ship full analytics while competitors only offer detection
+2. **Multi-platform SDK** — Works on any hosting (Cloudflare-only, WordPress-only can't match)
+3. **Analytics depth** — Page-level analysis, AI scores, referral tracking = different product category
+4. **Developer UX** — npm install, 3-line setup, instant value
 
-### Medium-term moats (1-2 years)
+### Medium-term (1-2 years)
 
-1. **AI traffic benchmark database:** "What's normal AI traffic for a tech blog? E-commerce site? News site?" — only possible with aggregated data from thousands of sites.
-2. **Content AI Score credibility:** If widely adopted, becomes the standard for "how AI-friendly is my content."
-3. **Developer ecosystem:** SDKs for every platform + open-source components.
-4. **Distribution via agencies:** Once agencies adopt for client reporting, sticky relationship.
+1. **Data network effect** — More sites → better AI traffic benchmarks → attracts more sites
+2. **Content AI Score standard** — If widely adopted, becomes THE metric for AI-friendliness
+3. **Agency lock-in** — Once agencies white-label for clients, high switching cost
+4. **SDK ecosystem** — SDKs for every platform = developer default choice
 
-### Moats we DON'T have
+### What We DON'T Have (honest)
 
-- No proprietary data source (unlike Profound's CDN partnerships)
-- No enterprise relationships
-- No brand recognition
-- No patents
+- No proprietary data source (Profound has CDN partnerships)
+- No enterprise brand recognition
+- No patents or deep technical moat
+- Vulnerable to Cloudflare adding analytics features
 
 ---
 
-## 10. Risk Analysis
+## 9. Risk Analysis
 
 | Risk | Probability | Impact | Mitigation |
 |------|------------|--------|------------|
-| **Cloudflare adds analytics** to AI Crawl Control | 40% | HIGH | Differentiate on cross-platform + content intelligence. Cloudflare analytics would be basic. |
-| **Known Agents adds analytics** dashboard | 30% | MEDIUM | They focus on WordPress/robots.txt. Our developer SDK approach is different. |
-| **AI bots start hiding** (no UA, no IP verification) | 20% | HIGH | Invest in behavioral detection (Layer 2+3). Server-side detection handles stealth bots better. |
-| **Market too small** — site owners don't care about AI traffic | 35% | HIGH | Pivot to "AI SEO optimization" (Content AI Score as core) if tracking alone doesn't resonate. |
-| **Low conversion** — free tier too generous | 30% | MEDIUM | Adjust free limits. Gate page-level analysis or time-range. |
-| **Team bandwidth** — side project, slow progress | 40% | MEDIUM | Focus ruthlessly on Phase 1. Ship small, iterate fast. |
-
-### Biggest Risk: "Nice to have, not must-have"
-
-The #1 risk is that AI traffic analytics is interesting but not urgent enough to pay for.
-
-**Mitigation plan:**
-- Phase 1 validates "do people install?"
-- Phase 2 validates "do people pay?"
-- If conversion <1.5% by Month 6 → pivot to Content AI Score as standalone product (more actionable, clearer ROI)
+| **Cloudflare adds analytics** to AI Crawl Control | 40% | HIGH | Differentiate on cross-platform support + content intelligence depth. Cloudflare analytics will be basic. |
+| **Known Agents adds analytics** dashboard | 30% | MEDIUM | They're WordPress-focused with robots.txt as core. Our SDK approach for developers is different. |
+| **"Nice to have, not must-have"** — people don't pay | 35% | HIGH | Validate willingness to pay by Month 4. If conversion <1.5% → pivot to Content AI Score standalone. |
+| **AI bots start hiding** (no UA strings) | 20% | HIGH | Invest in behavioral detection (Layer 2+3). Server-side SDK detects at middleware level. |
+| **Low conversion** — free tier too generous | 30% | MEDIUM | Adjust free limits (gate page-level analysis, reduce retention to 3 days). |
+| **Team bandwidth** — side project, slow | 40% | MEDIUM | Focus ruthlessly on Phase 1. Ship small, iterate fast. No feature creep. |
+| **Profound moves down-market** | 20% | HIGH | Move fast on developer experience + multi-platform SDKs. Lock in developer community before they can react. |
 
 ---
 
-## 11. Team & Resource Plan
+## 10. Team & Resources
 
-### Phase 1 (Month 1-4): Founders Only
+### Phase 1 (Month 1-4): Founders
 
 ```
-Person 1 (Big): Backend + infrastructure + server SDK
-Person 2 (Team): Frontend dashboard + tracker
-Time commitment: Side project, 15-20 hours/week each
-Cost: $0 salary, $100/mo infra
+Backend + infrastructure + server SDK:   Person 1
+Frontend dashboard + tracker:            Person 2
+Time: Side project, 15-20 hours/week each
+Cost: $0 salary, $100/mo infrastructure
 ```
 
 ### Phase 2 (Month 5-8): First Hire
 
 ```
 + Part-time frontend contractor: Dashboard polish, landing page
-Cost: $2,000-3,000/month
 Trigger: >30 paid customers OR >$1K MRR
+Cost: $2,000-3,000/month
 ```
 
 ### Phase 3 (Month 9-12): Small Team
 
 ```
 + Full-time developer: SDKs, integrations, scale
-+ Part-time content writer: Blog, SEO, docs
-Cost: $5,000-6,000/month total
++ Part-time content writer: Blog, SEO, documentation
 Trigger: >100 paid customers OR >$4K MRR
+Cost: $5,000-6,000/month
 ```
 
 ---
 
-## 12. Potential Pivot Paths
+## 11. Pivot Paths
 
-If the current direction doesn't work, here are adjacent pivots using the same codebase:
+If primary direction doesn't gain traction:
 
 ### Pivot A: "Content AI Score" Standalone
 
-If tracking doesn't convert but scores resonate:
-- Drop tracking, focus on on-demand page scanning
+- Drop tracking → focus on on-demand page scanning
 - "Lighthouse for AI visibility" — scan any URL, get AI readiness score
-- Pricing: per-scan ($0.10) or subscription for continuous monitoring
-- Competitor: None at this price point
+- Pricing: per-scan ($0.10) or subscription for monitoring
+- **When:** Tracking installs OK but nobody pays for analytics
 
 ### Pivot B: "AI Traffic API" (B2B)
 
-If individual sites don't pay but tools/platforms want data:
 - Sell aggregated AI traffic benchmarks as API
 - Customers: SEO tools, marketing platforms, agencies
-- Pricing: API calls ($0.001/call) or enterprise license
-- Requires: >1,000 sites for meaningful data
+- Pricing: API calls or enterprise license
+- **When:** 1,000+ sites installed but individual willingness to pay is low
 
-### Pivot C: "AI Referral Attribution" (Marketing Focus)
+### Pivot C: "AI Referral Attribution"
 
-If AI referral tracking is the most valued feature:
 - Position as "UTM for AI traffic"
-- Deep integration with GA4, Mixpanel, Amplitude
-- Pricing: Based on tracked referrals
-- Competitor: Loosely competes with Profound's attribution
+- Deep GA4/Mixpanel/Amplitude integration
+- Pricing: based on tracked referrals
+- **When:** Referral tracking is the most loved feature, other features underused
 
 ---
 
-## 13. Exit Scenarios
+## 12. Exit Scenarios
 
-### Most Likely (2-3 years)
-
-**Acqui-hire or small acquisition by SEO/analytics company**
-- Ahrefs, SEMrush, Moz, or similar
-- $1-5M range depending on traction
-- Triggered by: 500+ paid customers, strong brand in AI analytics niche
-
-### Upside (3-5 years)
-
-**Acquisition by larger platform**
-- Cloudflare (to add analytics to AI Crawl Control)
-- Vercel (developer-focused AI analytics)
-- HubSpot (marketing analytics expansion)
-- $5-20M range
-- Triggered by: 2,000+ paid customers, $200K+ ARR, strong data moat
-
-### Lifestyle Business Option
-
-**Self-sustaining niche SaaS**
-- $10-20K MRR = good income for small team
-- No fundraising needed
-- Requires: 250-500 paid customers at $40 ARPU
-- Timeline: Month 12-18
-
----
-
-## 14. Summary: Why This Business Can Work
-
-```
-✅ Market is real         → Profound's $58.5M funding validates demand
-✅ Gap exists             → No analytics tool for SMB/dev (only detect+block)
-✅ Code is 70% built      → Ship in weeks, not months
-✅ Team has right skills   → JS/TS/NestJS/PHP matches the product
-✅ Low burn rate          → Side project start, scale when validated
-✅ Clear differentiation  → Analytics (us) ≠ Detection (Cloudflare/Known Agents)
-✅ Multiple pivot paths   → If Plan A fails, B/C are viable
-
-⚠️ Risks to watch:
-   - "Nice to have" risk — validate willingness to pay early
-   - Cloudflare adding analytics — differentiate on depth
-   - Market may be smaller than estimated — have pivot paths ready
-```
-
----
-
-*This business model is designed to be realistic and testable.
-Every assumption has a validation checkpoint.
-No fantasy math. No $100K MRR projections without evidence.*
+| Scenario | Timeline | Trigger | Range |
+|----------|----------|---------|-------|
+| **Acqui-hire by SEO company** (Ahrefs, SEMrush, Moz) | 2-3 years | 500+ paid, strong niche brand | $1-5M |
+| **Acquisition by platform** (Cloudflare, Vercel, HubSpot) | 3-5 years | 2,000+ paid, $200K+ ARR, data moat | $5-20M |
+| **Lifestyle SaaS** | 12-18 months | 250-500 paid at $40 ARPU = $10-20K MRR | Sustainable income, no fundraising needed |
