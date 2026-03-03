@@ -1,0 +1,51 @@
+{
+  "cli_version": "0.4.6",
+  "checkpoint_id": "136ba0f07682",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "apps/api/prisma/migrations/20260303000000_add_stripe_fields_to_user/migration.sql",
+    "apps/api/prisma/schema.prisma",
+    "apps/api/src/analytics/analytics.controller.ts",
+    "apps/api/src/analytics/analytics.service.ts",
+    "apps/api/src/analytics/dto/analytics-query.dto.ts",
+    "apps/api/src/app.module.ts",
+    "apps/api/src/billing/billing.controller.ts",
+    "apps/api/src/billing/billing.module.ts",
+    "apps/api/src/billing/billing.service.ts",
+    "apps/api/src/billing/dto/create-checkout.dto.ts",
+    "apps/api/src/main.ts",
+    "apps/api/src/sites/sites.controller.ts",
+    "apps/api/src/sites/sites.service.ts",
+    "apps/dashboard/src/App.tsx",
+    "apps/dashboard/src/components/layout/dashboard-layout.tsx",
+    "apps/dashboard/src/components/onboarding/onboarding-wizard.tsx",
+    "apps/dashboard/src/hooks/use-analytics.ts",
+    "apps/dashboard/src/hooks/use-billing.ts",
+    "apps/dashboard/src/hooks/use-onboarding.ts",
+    "apps/dashboard/src/lib/agent-type-styles.ts",
+    "apps/dashboard/src/pages/billing.tsx",
+    "apps/dashboard/src/pages/content-analysis.tsx",
+    "apps/dashboard/src/pages/overview.tsx",
+    "apps/dashboard/src/pages/referrals.tsx",
+    "apps/dashboard/src/pages/timeline.tsx",
+    "packages/types/src/analytics.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/13/6ba0f07682/0/metadata.json",
+      "transcript": "/13/6ba0f07682/0/full.jsonl",
+      "context": "/13/6ba0f07682/0/context.md",
+      "content_hash": "/13/6ba0f07682/0/content_hash.txt",
+      "prompt": "/13/6ba0f07682/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 107,
+    "cache_creation_tokens": 203178,
+    "cache_read_tokens": 8385075,
+    "output_tokens": 37557,
+    "api_call_count": 103
+  }
+}

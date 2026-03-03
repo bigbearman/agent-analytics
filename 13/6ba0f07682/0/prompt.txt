@@ -1,0 +1,209 @@
+Implement the following plan:
+
+# Sprint 3-4: Implementation Plan
+
+## Context
+
+Sprint 1-2 hoàn thành (11/11 tasks). Sprint 3-4 còn 4 task kỹ thuật cần làm:
+
+1. **Agent type filter cho Timeline** — filter timeline theo training/search/on_demand
+2. **GET /analytics/referrals/pages** — endpoint còn thiếu từ Phase 1
+3. **Stripe integration** — thanh toán Starter/Pro/Business
+4. **Onboarding flow** — hướng dẫn user mới setup tracking
+
+---
+
+## Task 1: Agent Type Filter cho Timeline
+
+### Backend
+
+**`apps/api/src/analytics/dto/analytics-query.dto.ts`** — thêm optional `agentType`:
+```typescript
+@IsOptional()
+@IsEnum(['training', 'search', 'on_demand', 'unknown'])
+agentType?: AgentType;
+```
+
+**`apps/api/src/analytics/analytics.service.ts`** — update `getTimeline()`:
+- Nhận thêm param `agentType?: AgentType`
+- Không filter (All): thêm FILTER clauses cho `training`, `search`, `on_demand` counts trong 1 query
+- Có filter: thêm `WHERE agent_type = ${agentType}`
+- Cache key: `timeline:{siteId}:{range}:{agentType || 'all'}`
+
+**`apps/api/src/analytics/analytics.controller.ts`** — truyền `query.agentType` vào service
+
+### Shared Types
+
+**`packages/types/src/analytics.ts`** — extend `TimelinePoint`:
+```typescript
+byType?: { training: number; search: number; on_demand: number; }
+```
+
+### Frontend
+
+**`apps/dashboard/src/lib/agent-type-styles.ts`** (NEW) — extract shared `AGENT_TYPE_STYLES` từ overview.tsx/content-analysis.tsx
+
+**`apps/dashboard/src/hooks/use-analytics.ts`** — update `useTimeline(siteId, range, agentType?)`, queryKey include agentType
+
+**`apps/dashboard/src/pages/timeline.tsx`** — thêm agent type toggle buttons `[All | Training | Search | On-demand]`, chart hiển thị 3 stacked areas (byType) khi All, 1 area khi filtered
+
+---
+
+## Task 2: GET /analytics/referrals/pages
+
+### Backend
+
+**`apps/api/src/analytics/analytics.service.ts`** — thêm `getReferralPages(siteId, range)`:
+- Query events WHERE `referrer_type = 'ai_referral'`, GROUP BY url
+- Per-page source breakdown bằng batch query
+- Trend vs previous period
+- Cache key: `referral-pages:{siteId}:{range}`
+
+**`apps/api/src/analytics/analytics.controller.ts`** — thêm `@Get('referrals/pages')` **TRƯỚC** `@Get('referrals')` (NestJS route order)
+
+### Shared Types
+
+**`packages/types/src/analytics.ts`** — thêm:
+```typescript
+interface ReferralPageStats {
+  url: string; totalVisits: number;
+  sources: Array<{ source: string; referrerDomain: string; visits: number }>;
+  topSource: string; trend: number;
+}
+```
+
+### Frontend
+
+**`apps/dashboard/src/hooks/use-analytics.ts`** — thêm `useReferralPages(siteId, range)`
+
+**`apps/dashboard/src/pages/referrals.tsx`** — thêm tab bar `[Sources | Landing Pages]`, tab Landing Pages hiển thị bảng page + sources
+
+---
+
+## Task 3: Stripe Integration
+
+### Migration
+
+**`apps/api/prisma/schema.prisma`** — thêm Stripe fields vào User model:
+```prisma
+stripeCustomerId     String?  @unique @map("stripe_customer_id")
+stripeSubscriptionId String?  @map("stripe_subscription_id")
+stripePriceId        String?  @map("stripe_price_id")
+```
+- Giữ `Site.plan` như denormalized copy (analytics queries đọc site.plan, không cần thay đổi)
+- Migration: `npx prisma migrate dev --name add_stripe_fields_to_user`
+
+### Backend (NEW files)
+
+```
+apps/api/src/billing/
+├── billing.module.ts
+├── billing.service.ts
+├── billing.controller.ts
+└── dto/create-checkout.dto.ts
+```
+
+**Endpoints:**
+- `POST /billing/checkout` (JWT) — tạo Stripe Checkout Session, trả `checkoutUrl`
+- `POST /billing/webhook` (public, raw body) — handle subscription events, update User.plan + Site.plan
+- `GET /billing/portal` (JWT) — trả Stripe Billing Portal URL
+
+**billing.service.ts:**
+- `createCheckoutSession(userId, plan)` — tạo/lấy Stripe customer, tạo checkout session
+- `handleWebhook(rawBody, signature)` — verify + route events
+- `handleSubscriptionUpdated(subscription)` — map priceId → PlanType, update User + all Sites trong transaction
+- `handleSubscriptionDeleted(subscription)` — reset về 'free'
+- `getBillingPortalUrl(userId)` — tạo portal session
+
+**Raw body cho webhook:** Configure trong `main.ts` dùng Fastify `addContentTypeParser`
+
+**`apps/api/src/app.module.ts`** — register BillingModule
+
+### Env vars mới
+
+```env
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_STARTER=price_...
+STRIPE_PRICE_PRO=price_...
+STRIPE_PRICE_BUSINESS=price_...
+```
+
+### Frontend
+
+**`apps/dashboard/src/pages/billing.tsx`** (NEW) — pricing cards + upgrade buttons + manage billing
+**`apps/dashboard/src/hooks/use-billing.ts`** (NEW) — `useCreateCheckout()` mutation
+**`apps/dashboard/src/App.tsx`** — thêm route `/billing`
+**`apps/dashboard/src/components/layout/dashboard-layout.tsx`** — thêm nav item Billing (CreditCard icon)
+
+### Dependencies
+
+```bash
+cd apps/api && pnpm add stripe
+```
+
+---
+
+## Task 4: Onboarding Flow
+
+### Backend
+
+**`apps/api/src/sites/sites.controller.ts`** — thêm `GET /sites/:id/verify`
+**`apps/api/src/sites/sites.service.ts`** — thêm `verifyInstallation(siteId, userId)`: count events trong 24h gần nhất > 0
+
+### Frontend (NEW files)
+
+**`apps/dashboard/src/hooks/use-onboarding.ts`** — track step qua localStorage (key = `onboarding:{userId}`)
+- Steps: `create-site` → `install-snippet` → `verify` → `done`
+- Auto-skip nếu user đã có site
+
+**`apps/dashboard/src/components/onboarding/onboarding-wizard.tsx`** — 3-step wizard:
+1. Nhập domain → tạo site (dùng existing `useSites` mutation)
+2. Copy tracking snippet (dùng existing `GET /sites/:id/snippet`)
+3. Verify installation → call `GET /sites/:id/verify`
+
+**`apps/dashboard/src/App.tsx`** — thêm route `/onboarding`, redirect user mới (0 sites) đến đây
+
+---
+
+## Thứ tự thực hiện
+
+```
+Phase A — Backend (không phụ thuộc frontend):
+ 1. Extend AnalyticsQueryDto + agentType          (Task 1)
+ 2. Update getTimeline() service                   (Task 1)
+ 3. Update timeline controller                     (Task 1)
+ 4. Add getReferralPages() service                 (Task 2)
+ 5. Add GET referrals/pages controller             (Task 2)
+ 6. Add verifyInstallation endpoint                (Task 4)
+
+Phase B — Shared types:
+ 7. Extend TimelinePoint + add ReferralPageStats   (Task 1+2)
+
+Phase C — Stripe backend:
+ 8. pnpm add stripe
+ 9. Migration: add Stripe fields to User
+10. Create billing module/service/controller
+11. Register BillingModule, configure raw body
+
+Phase D — Frontend:
+12. Extract shared agent-type-styles.ts            (Task 1)
+13. Update useTimeline hook + timeline.tsx          (Task 1)
+14. Add useReferralPages hook + update referrals.tsx (Task 2)
+15. Create billing page + hook + route              (Task 3)
+16. Create onboarding hook + wizard + route          (Task 4)
+```
+
+## Verification
+
+- Task 1: Gọi `GET /analytics/timeline?siteId=xxx&range=7d` (không filter) → có `byType`. Gọi với `&agentType=training` → chỉ có training data
+- Task 2: Gọi `GET /analytics/referrals/pages?siteId=xxx&range=7d` → danh sách landing pages + sources
+- Task 3: Click "Upgrade to Starter" → redirect Stripe Checkout → complete → plan updated
+- Task 4: Register user mới → tự redirect đến onboarding → tạo site → copy snippet → verify
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /Users/kienduong/.claude/projects/-Users-kienduong-works-projects-agent-analytize/b67bf36c-1184-4161-9e5b-3d6d8511dd92.jsonl
+
+---
+
+push chua?
