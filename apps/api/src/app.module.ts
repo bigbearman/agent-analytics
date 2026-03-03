@@ -10,6 +10,7 @@ import { SitesModule } from './sites/sites.module';
 import { AuthModule } from './auth/auth.module';
 import { AgentDetectionModule } from './agent-detection/agent-detection.module';
 import { HealthModule } from './health/health.module';
+import { BillingModule } from './billing/billing.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { HealthModule } from './health/health.module';
     SitesModule,
     AuthModule,
     HealthModule,
+    BillingModule,
   ],
 })
 export class AppModule {}

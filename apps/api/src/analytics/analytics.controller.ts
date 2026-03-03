@@ -40,7 +40,11 @@ export class AnalyticsController {
 
   @Get('timeline')
   async getTimeline(@Query() query: AnalyticsQueryDto) {
-    const data = await this.analyticsService.getTimeline(query.siteId, query.range);
+    const data = await this.analyticsService.getTimeline(
+      query.siteId,
+      query.range,
+      query.agentType,
+    );
     return { data };
   }
 
@@ -59,6 +63,12 @@ export class AnalyticsController {
       limit,
     );
     return { data: result.pages, meta: { total: result.total, limit } };
+  }
+
+  @Get('referrals/pages')
+  async getReferralPages(@Query() query: AnalyticsQueryDto) {
+    const data = await this.analyticsService.getReferralPages(query.siteId, query.range);
+    return { data };
   }
 
   @Get('referrals')

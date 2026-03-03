@@ -10,6 +10,8 @@ import type {
   PageAiInterest,
   AiReferralOverview,
   AiReferralStats,
+  ReferralPageStats,
+  AgentType,
 } from '@agent-analytics/types';
 import { AI_REFERRAL_DOMAINS } from '@agent-analytics/types';
 
@@ -161,22 +163,63 @@ export class AnalyticsService {
     });
   }
 
-  async getTimeline(siteId: string, range: AnalyticsRange): Promise<TimelinePoint[]> {
-    const cacheKey = `timeline:${siteId}:${range}`;
+  async getTimeline(
+    siteId: string,
+    range: AnalyticsRange,
+    agentType?: AgentType,
+  ): Promise<TimelinePoint[]> {
+    const cacheKey = `timeline:${siteId}:${range}:${agentType ?? 'all'}`;
 
     return this.redis.wrap(cacheKey, CACHE_TTL, async () => {
       const interval = RANGE_TO_INTERVAL[range];
       // Group by hour for 1d, by day for 7d/30d
       const bucket = range === '1d' ? 'hour' : 'day';
 
+      if (agentType) {
+        // Filtered by specific agent type
+        const rows = await this.prisma.$queryRaw<
+          Array<{ bucket: Date; total: bigint; agents: bigint; humans: bigint }>
+        >`
+          SELECT
+            date_trunc(${bucket}, timestamp) as bucket,
+            COUNT(*) as total,
+            COUNT(*) FILTER (WHERE is_agent = true AND agent_type = ${agentType}) as agents,
+            COUNT(*) FILTER (WHERE is_agent = false OR agent_type != ${agentType} OR agent_type IS NULL) as humans
+          FROM events
+          WHERE site_id = ${siteId}
+            AND timestamp > NOW() - ${interval}::INTERVAL
+          GROUP BY bucket
+          ORDER BY bucket ASC
+        `;
+
+        return rows.map((row) => ({
+          timestamp: row.bucket.toISOString(),
+          total: Number(row.total),
+          agents: Number(row.agents),
+          humans: Number(row.humans),
+        }));
+      }
+
+      // No filter: return all data with byType breakdown
       const rows = await this.prisma.$queryRaw<
-        Array<{ bucket: Date; total: bigint; agents: bigint; humans: bigint }>
+        Array<{
+          bucket: Date;
+          total: bigint;
+          agents: bigint;
+          humans: bigint;
+          training: bigint;
+          search: bigint;
+          on_demand: bigint;
+        }>
       >`
         SELECT
           date_trunc(${bucket}, timestamp) as bucket,
           COUNT(*) as total,
           COUNT(*) FILTER (WHERE is_agent = true) as agents,
-          COUNT(*) FILTER (WHERE is_agent = false) as humans
+          COUNT(*) FILTER (WHERE is_agent = false) as humans,
+          COUNT(*) FILTER (WHERE agent_type = 'training') as training,
+          COUNT(*) FILTER (WHERE agent_type = 'search') as search,
+          COUNT(*) FILTER (WHERE agent_type = 'on_demand') as on_demand
         FROM events
         WHERE site_id = ${siteId}
           AND timestamp > NOW() - ${interval}::INTERVAL
@@ -189,6 +232,11 @@ export class AnalyticsService {
         total: Number(row.total),
         agents: Number(row.agents),
         humans: Number(row.humans),
+        byType: {
+          training: Number(row.training),
+          search: Number(row.search),
+          on_demand: Number(row.on_demand),
+        },
       }));
     });
   }
@@ -407,6 +455,95 @@ export class AnalyticsService {
           ? Math.round((totalReferrals / totalTraffic) * 10000) / 100
           : 0,
       };
+    });
+  }
+
+  async getReferralPages(
+    siteId: string,
+    range: AnalyticsRange,
+  ): Promise<ReferralPageStats[]> {
+    const cacheKey = `referral-pages:${siteId}:${range}`;
+
+    return this.redis.wrap(cacheKey, CACHE_TTL, async () => {
+      const interval = RANGE_TO_INTERVAL[range];
+
+      // Landing pages from AI referrals
+      const rows = await this.prisma.$queryRaw<
+        Array<{ url: string; total_visits: bigint }>
+      >`
+        SELECT url, COUNT(*) as total_visits
+        FROM events
+        WHERE site_id = ${siteId}
+          AND referrer_type = 'ai_referral'
+          AND timestamp > NOW() - ${interval}::INTERVAL
+        GROUP BY url
+        ORDER BY total_visits DESC
+      `;
+
+      if (rows.length === 0) return [];
+
+      // Per-page source breakdown (batch query)
+      const urls = rows.map((r) => r.url);
+      const sourceRows = await this.prisma.$queryRaw<
+        Array<{ url: string; referrer_domain: string; visits: bigint }>
+      >`
+        SELECT url, referrer_domain, COUNT(*) as visits
+        FROM events
+        WHERE site_id = ${siteId}
+          AND referrer_type = 'ai_referral'
+          AND timestamp > NOW() - ${interval}::INTERVAL
+          AND url = ANY(${urls})
+        GROUP BY url, referrer_domain
+        ORDER BY url, visits DESC
+      `;
+
+      const sourcesByUrl = new Map<
+        string,
+        Array<{ source: string; referrerDomain: string; visits: number }>
+      >();
+      for (const row of sourceRows) {
+        const list = sourcesByUrl.get(row.url) ?? [];
+        list.push({
+          source: AI_REFERRAL_DOMAINS[row.referrer_domain] ?? row.referrer_domain,
+          referrerDomain: row.referrer_domain,
+          visits: Number(row.visits),
+        });
+        sourcesByUrl.set(row.url, list);
+      }
+
+      // Previous period for trend
+      const prevRows = await this.prisma.$queryRaw<
+        Array<{ url: string; total_visits: bigint }>
+      >`
+        SELECT url, COUNT(*) as total_visits
+        FROM events
+        WHERE site_id = ${siteId}
+          AND referrer_type = 'ai_referral'
+          AND timestamp > NOW() - (${interval}::INTERVAL * 2)
+          AND timestamp <= NOW() - ${interval}::INTERVAL
+        GROUP BY url
+      `;
+
+      const prevMap = new Map(
+        prevRows.map((r) => [r.url, Number(r.total_visits)]),
+      );
+
+      return rows.map((row) => {
+        const totalVisits = Number(row.total_visits);
+        const prev = prevMap.get(row.url) ?? 0;
+        const trend = prev > 0
+          ? ((totalVisits - prev) / prev) * 100
+          : (totalVisits > 0 ? 100 : 0);
+        const sources = sourcesByUrl.get(row.url) ?? [];
+
+        return {
+          url: row.url,
+          totalVisits,
+          sources,
+          topSource: sources[0]?.source ?? '',
+          trend: Math.round(trend * 100) / 100,
+        };
+      });
     });
   }
 }

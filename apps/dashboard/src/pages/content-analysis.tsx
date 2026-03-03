@@ -15,11 +15,12 @@ import {
 } from 'recharts';
 import { TrendingUp, TrendingDown, ChevronDown, ChevronRight } from 'lucide-react';
 import clsx from 'clsx';
+import { AGENT_TYPE_STYLES } from '../lib/agent-type-styles';
 
 const AGENT_TYPE_COLORS = {
-  training: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', bar: '#3b82f6' },
-  search: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-400', bar: '#10b981' },
-  on_demand: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-400', bar: '#f59e0b' },
+  training: { bg: AGENT_TYPE_STYLES.training.bg, text: AGENT_TYPE_STYLES.training.text, bar: AGENT_TYPE_STYLES.training.color },
+  search: { bg: AGENT_TYPE_STYLES.search.bg, text: AGENT_TYPE_STYLES.search.text, bar: AGENT_TYPE_STYLES.search.color },
+  on_demand: { bg: AGENT_TYPE_STYLES.on_demand.bg, text: AGENT_TYPE_STYLES.on_demand.text, bar: AGENT_TYPE_STYLES.on_demand.color },
 };
 
 export function ContentAnalysisPage() {

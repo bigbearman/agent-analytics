@@ -9,6 +9,7 @@ import {
   Share2,
   Clock,
   Globe,
+  CreditCard,
   LogOut,
   Menu,
   X,
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { path: '/referrals', label: 'AI Referrals', icon: Share2 },
   { path: '/timeline', label: 'Timeline', icon: Clock },
   { path: '/sites', label: 'Sites', icon: Globe },
+  { path: '/billing', label: 'Billing', icon: CreditCard },
 ];
 
 export function DashboardLayout({ children }: { children: ReactNode }) {

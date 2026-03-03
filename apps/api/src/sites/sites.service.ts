@@ -64,6 +64,20 @@ export class SitesService {
     });
   }
 
+  async verifyInstallation(siteId: string, userId: string): Promise<boolean> {
+    await this.findOneOrFail(siteId, userId);
+
+    const [result] = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*) as count
+      FROM events
+      WHERE site_id = ${siteId}
+        AND timestamp > NOW() - INTERVAL '24 hours'
+      LIMIT 1
+    `;
+
+    return Number(result?.count ?? 0) > 0;
+  }
+
   private async findOneOrFail(siteId: string, userId: string) {
     const site = await this.prisma.site.findUnique({ where: { id: siteId } });
     if (!site) {

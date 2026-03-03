@@ -8,6 +8,8 @@ import type {
   TimelinePoint,
   PageAiInterest,
   AiReferralOverview,
+  ReferralPageStats,
+  AgentType,
   ApiResponse,
 } from '@agent-analytics/types';
 
@@ -44,13 +46,16 @@ export function usePages(siteId: string, range: AnalyticsRange) {
   });
 }
 
-export function useTimeline(siteId: string, range: AnalyticsRange) {
+export function useTimeline(siteId: string, range: AnalyticsRange, agentType?: AgentType) {
   return useQuery({
-    queryKey: ['timeline', siteId, range],
-    queryFn: () =>
-      api.get<ApiResponse<TimelinePoint[]>>(
-        `/analytics/timeline?siteId=${siteId}&range=${range}`,
-      ),
+    queryKey: ['timeline', siteId, range, agentType ?? 'all'],
+    queryFn: () => {
+      const params = new URLSearchParams({ siteId, range });
+      if (agentType) params.set('agentType', agentType);
+      return api.get<ApiResponse<TimelinePoint[]>>(
+        `/analytics/timeline?${params.toString()}`,
+      );
+    },
     enabled: !!siteId,
   });
 }
@@ -72,6 +77,17 @@ export function useReferrals(siteId: string, range: AnalyticsRange) {
     queryFn: () =>
       api.get<ApiResponse<AiReferralOverview>>(
         `/analytics/referrals?siteId=${siteId}&range=${range}`,
+      ),
+    enabled: !!siteId,
+  });
+}
+
+export function useReferralPages(siteId: string, range: AnalyticsRange) {
+  return useQuery({
+    queryKey: ['referral-pages', siteId, range],
+    queryFn: () =>
+      api.get<ApiResponse<ReferralPageStats[]>>(
+        `/analytics/referrals/pages?siteId=${siteId}&range=${range}`,
       ),
     enabled: !!siteId,
   });

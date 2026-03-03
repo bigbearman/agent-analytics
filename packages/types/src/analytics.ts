@@ -26,6 +26,11 @@ export interface TimelinePoint {
   total: number;
   agents: number;
   humans: number;
+  byType?: {
+    training: number;
+    search: number;
+    on_demand: number;
+  };
 }
 
 export type AnalyticsRange = '1d' | '7d' | '30d';
@@ -70,4 +75,17 @@ export interface AiReferralOverview {
   sources: AiReferralStats[];
   totalReferrals: number;
   referralShare: number;
+}
+
+/** Landing page from AI referrals — GET /analytics/referrals/pages */
+export interface ReferralPageStats {
+  url: string;
+  totalVisits: number;
+  sources: Array<{
+    source: string;
+    referrerDomain: string;
+    visits: number;
+  }>;
+  topSource: string;
+  trend: number;
 }

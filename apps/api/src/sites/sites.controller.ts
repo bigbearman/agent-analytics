@@ -27,6 +27,12 @@ export class SitesController {
     return { data: { snippet } };
   }
 
+  @Get(':id/verify')
+  async verifyInstallation(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    const verified = await this.sitesService.verifyInstallation(id, user.userId);
+    return { data: { verified } };
+  }
+
   @Post(':id/rotate-key')
   async rotateKey(@Param('id') id: string, @CurrentUser() user: AuthUser) {
     const site = await this.sitesService.rotateApiKey(id, user.userId);
