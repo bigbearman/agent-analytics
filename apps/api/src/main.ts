@@ -12,11 +12,10 @@ async function bootstrap() {
 
   // Preserve raw body for Stripe webhook signature verification
   const fastifyInstance = app.getHttpAdapter().getInstance();
-  try {
+  if (fastifyInstance.hasContentTypeParser('application/json')) {
     fastifyInstance.removeContentTypeParser('application/json');
-  } catch {
-    // Parser may not exist yet in some Fastify versions
   }
+  fastifyInstance.removeAllContentTypeParsers();
   fastifyInstance.addContentTypeParser(
     'application/json',
     { parseAs: 'buffer' as const },
