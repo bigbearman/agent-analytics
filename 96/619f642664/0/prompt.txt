@@ -1,0 +1,38 @@
+verson stripe cần ENV nào? để anh setup railway
+
+---
+
+[31m[Nest] 1  - 03/09/2026, 3:36:46 AM   ERROR [ExceptionHandler] TypeError: Configuration key "STRIPE_PRICE_STARTER" does not exist
+
+---
+
+tạm thoi free thì các env này nên set như nao
+
+---
+
+pull code mói nhất va phân tích lỗi deploy railway
+
+---
+
+option A. anh đã updated env trên railway
+
+---
+
+/app/node_modules/.pnpm/fastify@5.7.4/node_modules/fastify/lib/content-type-parser.js:59
+    throw new FST_ERR_CTP_ALREADY_PRESENT(contentType)
+          ^
+FastifyError [Error]: Content type parser 'application/json' already present.
+    at ContentTypeParser.add (/app/node_modules/.pnpm/fastify@5.7.4/node_modules/fastify/lib/content-type-parser.js:59:11)
+    at Object.addContentTypeParser (/app/node_modules/.pnpm/fastify@5.7.4/node_modules/fastify/lib/content-type-parser.js:360:30)
+    at FastifyAdapter.useBodyParser (/app/node_modules/.pnpm/@nestjs+platform-fastify@11.1.14_@nestjs+common@11.1.14_class-transformer@0.5.1_class-validat_m72shnjoq24sm3roxooxqiwkv4/node_modules/@nestjs/platform-fastify/adapters/fastify-adapter.js:359:28)
+    at FastifyAdapter.registerJsonContentParser (/app/node_modules/.pnpm/@nestjs+platform-fastify@11.1.14_@nestjs+common@11.1.14_class-transformer@0.5.1_class-validat_m72shnjoq24sm3roxooxqiwkv4/node_modules/@nestjs/platform-fastify/adapters/fastify-adapter.js:439:14)
+    at FastifyAdapter.registerParserMiddleware (/app/node_modules/.pnpm/@nestjs+platform-fastify@11.1.14_@nestjs+common@11.1.14_class-transformer@0.5.1_class-validat_m72shnjoq24sm3roxooxqiwkv4/node_modules/@nestjs/platform-fastify/adapters/fastify-adapter.js:346:14)
+    at NestApplication.registerParserMiddleware (/app/node_modules/.pnpm/@nestjs+core@11.1.14_@nestjs+common@11.1.14_class-transformer@0.5.1_class-validator@0.14.3_re_2ecwdsjwg44gsaxr6t5d7dpzmi/node_modules/@nestjs/core/nest-application.js:113:26)
+    at NestApplication.init (/app/node_modules/.pnpm/@nestjs+core@11.1.14_@nestjs+common@11.1.14_class-transformer@0.5.1_class-validator@0.14.3_re_2ecwdsjwg44gsaxr6t5d7dpzmi/node_modules/@nestjs/core/nest-application.js:100:31)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NestApplication.listen (/app/node_modules/.pnpm/@nestjs+core@11.1.14_@nestjs+common@11.1.14_class-transformer@0.5.1_class-validator@0.14.3_re_2ecwdsjwg44gsaxr6t5d7dpzmi/node_modules/@nestjs/core/nest-application.js:175:13)
+    at async bootstrap (/app/apps/api/dist/main.js:38:5) {
+  code: 'FST_ERR_CTP_ALREADY_PRESENT',
+  statusCode: 500
+}
+Node.js v20.20.1
